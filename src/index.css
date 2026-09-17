@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 150 25% 97%;
+    --foreground: 150 20% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 150 20% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 20% 12%;
+    --primary: 120 100% 15%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 120 20% 90%;
+    --secondary-foreground: 120 100% 15%;
+    --muted: 120 16% 93%;
+    --muted-foreground: 120 10% 40%;
+    --accent: 46 60% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 120 18% 88%;
+    --input: 120 18% 88%;
+    --ring: 46 60% 53%;
+    --navy: 120 100% 15%;
+    --navy-deep: 120 100% 9%;
+    --gold: 46 60% 53%;
+    --gold-light: 50 75% 62%;
+    --crimson: 0 70% 44%;
+    --canvas: 150 25% 97%;
+    --radius: 0.75rem;
+    --font-heading: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  .dark {
+    --background: 139 51% 10%;
+    --foreground: 0 0% 98%;
+    --card: 140 48% 18%;
+    --card-foreground: 0 0% 98%;
+    --popover: 140 48% 18%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 140 48% 23%;
+    --secondary: 140 30% 18%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 140 30% 18%;
+    --muted-foreground: 150 15% 65%;
+    --accent: 38 92% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 140 30% 18%;
+    --input: 140 30% 18%;
+    --ring: 38 92% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .gold-gradient {
+    background: #d4af37;
+  }
+  .navy-gradient {
+    background: #004d00;
+  }
+  .medal-gold {
+    background: #FCD34D;
+  }
+  .medal-silver {
+    background: #CBD5E1;
+  }
+  .medal-bronze {
+    background: #D9A06A;
+  }
+  .hero-overlay {
+    background: rgba(0, 77, 0, 0.78);
+  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+}
