@@ -19,12 +19,13 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://localhost:5174",
+        "https://olimpifp2.vercel.app",
+        "https://olimpifp2-*.vercel.app",  # previews da Vercel
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 @app.get("/api/health", tags=["Sistema"])
 async def health_check():
