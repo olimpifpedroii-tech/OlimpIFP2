@@ -7,6 +7,7 @@ class NoticiaBase(BaseModel):
     date: str = Field(..., max_length=50)
     category: str = Field(..., max_length=80)
     summary: str = ""
+    content: str = ""
     image: str = ""
     views: int = 0
     read_time: str = Field("3 min", max_length=20)
@@ -21,6 +22,7 @@ class NoticiaUpdate(BaseModel):
     date: str | None = Field(None, max_length=50)
     category: str | None = Field(None, max_length=80)
     summary: str | None = None
+    content: str | None = None
     image: str | None = None
     views: int | None = None
     read_time: str | None = Field(None, max_length=20)

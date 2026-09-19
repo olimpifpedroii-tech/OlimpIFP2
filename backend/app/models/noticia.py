@@ -13,6 +13,7 @@ class Noticia(Base):
     date: Mapped[str] = mapped_column(String(50))
     category: Mapped[str] = mapped_column(String(80))
     summary: Mapped[str] = mapped_column(Text)
+    content: Mapped[str] = mapped_column(Text, default="")
     image: Mapped[str] = mapped_column(Text, default="")
     views: Mapped[int] = mapped_column(Integer, default=0)
     read_time: Mapped[str] = mapped_column(String(20), default="3 min")

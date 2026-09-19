@@ -6,6 +6,7 @@ from app.routers import noticias as noticias_router
 from app.routers import medalhistas as medalhistas_router
 from app.routers import olimpiadas as olimpiadas_router
 from app.routers import galeria as galeria_router
+from app.routers import upload as upload_router
 
 
 app = FastAPI(
@@ -14,18 +15,15 @@ app = FastAPI(
     version="0.1.0",
 )
 
+# CORS — permite o frontend (localhost e Vercel) conversar com o backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "https://olimpifp2.vercel.app",
-        "https://olimpifp2-*.vercel.app",  # previews da Vercel
-    ],
+    allow_origin_regex=r"https://(olimpifp2.*\.vercel\.app|.*\.supabase\.co)|http://localhost(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.get("/api/health", tags=["Sistema"])
 async def health_check():
@@ -38,3 +36,4 @@ app.include_router(noticias_router.router)
 app.include_router(medalhistas_router.router)
 app.include_router(olimpiadas_router.router)
 app.include_router(galeria_router.router)
+app.include_router(upload_router.router)

@@ -2,9 +2,18 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Trophy, Newspaper, Medal, Image as ImageIcon, LayoutDashboard, Plus, Trash2,
-  Upload, ArrowLeft, Save, Calendar, LogOut, Loader2, X,
+  Upload, ArrowLeft, Save, Calendar, LogOut, Loader2, X, Check,
 } from "lucide-react";
-import { noticias as noticiasApi, medalhistas as medalhistasApi, olimpiadas as olimpiadasApi, galeria as galeriaApi, auth } from "@/lib/api";
+import {
+  noticias as noticiasApi,
+  medalhistas as medalhistasApi,
+  olimpiadas as olimpiadasApi,
+  galeria as galeriaApi,
+  auth,
+  getToken,
+} from "@/lib/api";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const TABS = [
   { id: "dashboard", label: "Painel", icon: LayoutDashboard },
@@ -26,34 +35,123 @@ function Field({ label, children }) {
   );
 }
 
+/* ============ UPLOAD DE IMAGEM ============ */
 function ImageUpload({ label, value, onChange }) {
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [error, setError] = useState("");
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setError("");
+    setUploading(true);
+    setProgress(0);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      // Upload via XMLHttpRequest pra ter progresso
+      const url = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener("progress", (ev) => {
+          if (ev.lengthComputable) {
+            setProgress(Math.round((ev.loaded / ev.total) * 100));
+          }
+        });
+
+        xhr.addEventListener("load", () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const data = JSON.parse(xhr.responseText);
+              resolve(data.url);
+            } catch {
+              reject(new Error("Resposta inválida do servidor"));
+            }
+          } else {
+            try {
+              const err = JSON.parse(xhr.responseText);
+              reject(new Error(err.detail || "Erro ao enviar imagem"));
+            } catch {
+              reject(new Error(`Erro ${xhr.status} ao enviar imagem`));
+            }
+          }
+        });
+
+        xhr.addEventListener("error", () => reject(new Error("Erro de rede")));
+
+        xhr.open("POST", `${API_URL}/api/upload`);
+        xhr.setRequestHeader("Authorization", `Bearer ${getToken()}`);
+        xhr.send(formData);
+      });
+
+      onChange(url);
+    } catch (err) {
+      setError(err.message || "Erro ao enviar imagem");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div>
       <label className="block text-sm font-semibold text-slate-700 mb-1.5">{label}</label>
+
       {value ? (
-        <div className="relative rounded-xl overflow-hidden border border-slate-200 group">
-          <img src={value} alt="preview" className="w-full h-40 object-cover" />
-          <button type="button" onClick={() => onChange("")} className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80">
-            <X className="w-4 h-4" />
-          </button>
+        <div className="space-y-2">
+          <div className="relative rounded-xl overflow-hidden border border-slate-200 group">
+            <img src={value} alt="preview" className="w-full h-40 object-cover" />
+            <button
+              type="button"
+              onClick={() => onChange("")}
+              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
+              title="Remover imagem"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-semibold text-slate-700 cursor-pointer transition-colors">
+            <Upload className="w-4 h-4" />
+            Trocar imagem
+            <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+          </label>
         </div>
       ) : (
-        <label className="flex flex-col items-center justify-center gap-2 h-40 rounded-xl border-2 border-dashed border-slate-300 cursor-pointer hover:border-[hsl(var(--gold))] hover:bg-[hsl(var(--gold))]/5 transition-colors">
-          <Upload className="w-7 h-7 text-slate-400" />
-          <span className="text-sm text-slate-500">Clique para enviar uma imagem</span>
-          <input type="file" className="hidden" onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) onChange(URL.createObjectURL(f));
-          }} />
+        <label
+          className={`flex flex-col items-center justify-center gap-2 h-40 rounded-xl border-2 border-dashed transition-colors cursor-pointer ${
+            uploading
+              ? "border-amber-400 bg-amber-50"
+              : "border-slate-300 hover:border-[hsl(var(--gold))] hover:bg-[hsl(var(--gold))]/5"
+          }`}
+        >
+          {uploading ? (
+            <>
+              <Loader2 className="w-7 h-7 text-amber-600 animate-spin" />
+              <span className="text-sm text-slate-600 font-semibold">Enviando... {progress}%</span>
+              <div className="w-32 h-2 rounded-full bg-slate-200 overflow-hidden">
+                <div
+                  className="h-full bg-amber-500 transition-all duration-200"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <Upload className="w-7 h-7 text-slate-400" />
+              <span className="text-sm text-slate-500">Clique para escolher uma imagem</span>
+              <span className="text-xs text-slate-400">JPG, PNG, WebP, GIF (máx. 10 MB)</span>
+              <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
+            </>
+          )}
         </label>
       )}
-      <input
-        type="text"
-        value={value.startsWith?.("blob:") ? "" : value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="...ou cole a URL da imagem"
-        className="mt-2 w-full px-3 py-2 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[hsl(var(--gold))]/30"
-      />
+
+      {error && (
+        <p className="mt-2 text-xs text-red-600 font-medium">{error}</p>
+      )}
     </div>
   );
 }
@@ -68,7 +166,6 @@ export default function Admin() {
   const [albuns, setAlbuns] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Carrega tudo da API ao abrir
   useEffect(() => {
     carregarTudo();
   }, []);
@@ -192,7 +289,7 @@ function Dashboard({ noticias, medalhistas, olimpiadas, albuns }) {
       </div>
       <div className="mt-6 bg-[hsl(var(--navy))] rounded-2xl p-6 text-white">
         <h3 className="font-heading font-bold text-lg mb-2">Bem-vindo ao painel administrativo</h3>
-        <p className="text-white/70 text-sm">Use as abas acima para cadastrar notícias, medalhistas, olimpíadas e álbuns. Tudo é salvo no banco de dados.</p>
+        <p className="text-white/70 text-sm">Use as abas acima para cadastrar notícias, medalhistas, olimpíadas e álbuns. As imagens agora sobem direto do seu computador.</p>
       </div>
     </div>
   );
@@ -200,7 +297,7 @@ function Dashboard({ noticias, medalhistas, olimpiadas, albuns }) {
 
 /* ============ NOTÍCIAS ============ */
 function NoticiasAdmin({ items, setItems }) {
-  const [form, setForm] = useState({ title: "", date: "", category: "Premiações", summary: "", image: "" });
+  const [form, setForm] = useState({ title: "", date: "", category: "Premiações", summary: "", content: "", image: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -212,7 +309,7 @@ function NoticiasAdmin({ items, setItems }) {
     try {
       const nova = await noticiasApi.create({ ...form, views: 0, read_time: "3 min" });
       setItems([nova, ...items]);
-      setForm({ title: "", date: "", category: "Premiações", summary: "", image: "" });
+      setForm({ title: "", date: "", category: "Premiações", summary: "", content: "", image: "" });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -247,7 +344,8 @@ function NoticiasAdmin({ items, setItems }) {
               </select>
             </Field>
           </div>
-          <Field label="Resumo"><textarea rows={3} className={`${inputCls} resize-none`} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} placeholder="Resumo da notícia" /></Field>
+          <Field label="Resumo"><textarea rows={2} className={`${inputCls} resize-none`} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} placeholder="Resumo curto (aparece nos cards)" /></Field>
+          <Field label="Conteúdo completo"><textarea rows={6} className={`${inputCls} resize-none`} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="Texto completo da notícia (aparece na página individual)" /></Field>
           <ImageUpload label="Imagem de capa" value={form.image} onChange={(v) => setForm({ ...form, image: v })} />
           <button type="submit" disabled={saving} className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -261,7 +359,7 @@ function NoticiasAdmin({ items, setItems }) {
         <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
           {items.map((n) => (
             <div key={n.id} className="bg-white rounded-xl border border-slate-200 p-4 flex gap-4 shadow-sm">
-              <img src={n.image} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0" />
+              <img src={n.image} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0 bg-slate-100" />
               <div className="min-w-0 flex-1">
                 <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700 mb-1">{n.category}</span>
                 <h3 className="font-semibold text-sm text-slate-900 leading-snug line-clamp-2">{n.title}</h3>
@@ -342,7 +440,7 @@ function MedalhistasAdmin({ items, setItems }) {
         <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
           {items.map((m) => (
             <div key={m.id} className="bg-white rounded-xl border border-slate-200 p-4 flex gap-4 shadow-sm">
-              <img src={m.photo} alt="" className="w-16 h-16 rounded-full object-cover shrink-0" />
+              <img src={m.photo} alt="" className="w-16 h-16 rounded-full object-cover shrink-0 bg-slate-100" />
               <div className="min-w-0 flex-1">
                 <h3 className="font-semibold text-sm text-slate-900">{m.name}</h3>
                 <p className="text-xs text-slate-500">{m.course}</p>
@@ -507,7 +605,7 @@ function GaleriaAdmin({ items, setItems }) {
         <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
           {items.map((a) => (
             <div key={a.id} className="bg-white rounded-xl border border-slate-200 p-4 flex gap-4 shadow-sm">
-              <img src={a.image} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0" />
+              <img src={a.image} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0 bg-slate-100" />
               <div className="min-w-0 flex-1">
                 <h3 className="font-semibold text-sm text-slate-900 leading-snug">{a.title}</h3>
                 <p className="text-xs text-slate-400 mt-1">{a.date} • {a.photos} fotos</p>

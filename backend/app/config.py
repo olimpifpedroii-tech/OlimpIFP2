@@ -12,5 +12,8 @@ class Settings(BaseSettings):
     ADMIN_EMAIL: str
     ADMIN_PASSWORD: str
 
+    SUPABASE_URL: str
+    SUPABASE_SERVICE_KEY: str
+
 
 settings = Settings()

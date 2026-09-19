@@ -14,6 +14,7 @@ import Conquistas from "@/pages/Conquistas";
 import DestaquesAnuais from "@/pages/DestaquesAnuais";
 import Galeria from "@/pages/Galeria";
 import Noticias from "@/pages/Noticias";
+import NoticiaDetalhe from "@/pages/NoticiaDetalhe";
 import Contato from "@/pages/Contato";
 import Admin from "@/pages/Admin";
 import Login from "@/pages/Login";
@@ -33,9 +34,9 @@ function App() {
             <Route path="/destaques-anuais" element={<DestaquesAnuais />} />
             <Route path="/galeria" element={<Galeria />} />
             <Route path="/noticias" element={<Noticias />} />
+            <Route path="/noticias/:id" element={<NoticiaDetalhe />} />
             <Route path="/contato" element={<Contato />} />
 
-            {/* 🔒 Rota protegida */}
             <Route
               path="/admin"
               element={
