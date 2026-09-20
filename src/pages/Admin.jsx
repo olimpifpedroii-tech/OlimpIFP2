@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Trophy, Newspaper, Medal, Image as ImageIcon, LayoutDashboard, Plus, Trash2,
-  Upload, ArrowLeft, Save, Calendar, LogOut, Loader2, X, Check, ExternalLink,
+  Upload, ArrowLeft, Save, Calendar, LogOut, Loader2, X, ExternalLink, Pencil, XCircle,
 } from "lucide-react";
 import {
   noticias as noticiasApi,
@@ -148,9 +148,7 @@ function ImageUpload({ label, value, onChange }) {
         </label>
       )}
 
-      {error && (
-        <p className="mt-2 text-xs text-red-600 font-medium">{error}</p>
-      )}
+      {error && <p className="mt-2 text-xs text-red-600 font-medium">{error}</p>}
     </div>
   );
 }
@@ -209,7 +207,6 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-[hsl(var(--canvas))] pt-16 lg:pt-20">
-      {/* Header */}
       <div className="bg-[hsl(var(--navy))] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -233,7 +230,6 @@ export default function Admin() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tabs */}
         <div className="flex gap-2 mb-8 overflow-x-auto scrollbar-hide">
           {TABS.map((t) => {
             const Icon = t.icon;
@@ -296,19 +292,28 @@ function Dashboard({ noticias, medalhistas, olimpiadas, albuns }) {
 
 /* ============ NOTÍCIAS ============ */
 function NoticiasAdmin({ items, setItems }) {
-  const [form, setForm] = useState({ title: "", date: "", category: "Premiações", summary: "", content: "", image: "" });
+  const formVazio = { title: "", date: "", category: "Premiações", summary: "", content: "", image: "" };
+  const [form, setForm] = useState(formVazio);
+  const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const add = async (e) => {
+  const isEditing = editingId !== null;
+
+  const submit = async (e) => {
     e.preventDefault();
     if (!form.title || !form.date) return;
     setSaving(true);
     setError("");
     try {
-      const nova = await noticiasApi.create({ ...form, views: 0, read_time: "3 min" });
-      setItems([nova, ...items]);
-      setForm({ title: "", date: "", category: "Premiações", summary: "", content: "", image: "" });
+      if (isEditing) {
+        const atualizada = await noticiasApi.update(editingId, form);
+        setItems(items.map((x) => (x.id === editingId ? atualizada : x)));
+      } else {
+        const nova = await noticiasApi.create({ ...form, views: 0, read_time: "3 min" });
+        setItems([nova, ...items]);
+      }
+      resetForm();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -316,11 +321,31 @@ function NoticiasAdmin({ items, setItems }) {
     }
   };
 
+  const resetForm = () => {
+    setForm(formVazio);
+    setEditingId(null);
+    setError("");
+  };
+
+  const startEdit = (n) => {
+    setForm({
+      title: n.title || "",
+      date: n.date || "",
+      category: n.category || "Premiações",
+      summary: n.summary || "",
+      content: n.content || "",
+      image: n.image || "",
+    });
+    setEditingId(n.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const remove = async (id) => {
     if (!confirm("Apagar esta notícia?")) return;
     try {
       await noticiasApi.remove(id);
       setItems(items.filter((x) => x.id !== id));
+      if (editingId === id) resetForm();
     } catch (err) {
       setError(err.message);
     }
@@ -328,12 +353,22 @@ function NoticiasAdmin({ items, setItems }) {
 
   return (
     <div className="grid lg:grid-cols-2 gap-8">
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+      <div className={`bg-white rounded-2xl border p-6 shadow-sm ${isEditing ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
         <h2 className="font-heading font-bold text-lg text-slate-900 mb-5 flex items-center gap-2">
-          <Plus className="w-5 h-5 text-[hsl(var(--gold))]" /> Nova Notícia
+          {isEditing ? (
+            <>
+              <Pencil className="w-5 h-5 text-amber-600" />
+              Editar Notícia
+            </>
+          ) : (
+            <>
+              <Plus className="w-5 h-5 text-[hsl(var(--gold))]" />
+              Nova Notícia
+            </>
+          )}
         </h2>
         {error && <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>}
-        <form onSubmit={add} className="space-y-4">
+        <form onSubmit={submit} className="space-y-4">
           <Field label="Título"><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Título da notícia" /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Data"><input className={inputCls} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} placeholder="12 MAI 2025" /></Field>
@@ -346,10 +381,21 @@ function NoticiasAdmin({ items, setItems }) {
           <Field label="Resumo"><textarea rows={2} className={`${inputCls} resize-none`} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} placeholder="Resumo curto (aparece nos cards)" /></Field>
           <Field label="Conteúdo completo"><textarea rows={6} className={`${inputCls} resize-none`} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="Texto completo da notícia (aparece na página individual)" /></Field>
           <ImageUpload label="Imagem de capa" value={form.image} onChange={(v) => setForm({ ...form, image: v })} />
-          <button type="submit" disabled={saving} className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? "Salvando..." : "Publicar notícia"}
-          </button>
+          <div className="flex gap-3">
+            {isEditing && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+              >
+                <XCircle className="w-4 h-4" /> Cancelar
+              </button>
+            )}
+            <button type="submit" disabled={saving} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {saving ? "Salvando..." : isEditing ? "Salvar alterações" : "Publicar notícia"}
+            </button>
+          </div>
         </form>
       </div>
 
@@ -357,16 +403,21 @@ function NoticiasAdmin({ items, setItems }) {
         <h2 className="font-heading font-bold text-lg text-slate-900 mb-4">{items.length} notícias cadastradas</h2>
         <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
           {items.map((n) => (
-            <div key={n.id} className="bg-white rounded-xl border border-slate-200 p-4 flex gap-4 shadow-sm">
+            <div key={n.id} className={`bg-white rounded-xl border p-4 flex gap-4 shadow-sm ${editingId === n.id ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
               <img src={n.image} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0 bg-slate-100" />
               <div className="min-w-0 flex-1">
                 <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700 mb-1">{n.category}</span>
                 <h3 className="font-semibold text-sm text-slate-900 leading-snug line-clamp-2">{n.title}</h3>
                 <p className="text-xs text-slate-400 mt-1 flex items-center gap-2"><Calendar className="w-3 h-3" /> {n.date}</p>
               </div>
-              <button onClick={() => remove(n.id)} className="self-start text-slate-300 hover:text-red-500 transition-colors">
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="self-start flex gap-1">
+                <button onClick={() => startEdit(n)} className="text-slate-300 hover:text-amber-600 transition-colors p-1" title="Editar">
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button onClick={() => remove(n.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Apagar">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -377,19 +428,28 @@ function NoticiasAdmin({ items, setItems }) {
 
 /* ============ MEDALHISTAS ============ */
 function MedalhistasAdmin({ items, setItems }) {
-  const [form, setForm] = useState({ name: "", medal: "Ouro", olympiad: "", course: "", quote: "", photo: "" });
+  const formVazio = { name: "", medal: "Ouro", olympiad: "", course: "", quote: "", photo: "" };
+  const [form, setForm] = useState(formVazio);
+  const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const add = async (e) => {
+  const isEditing = editingId !== null;
+
+  const submit = async (e) => {
     e.preventDefault();
     if (!form.name) return;
     setSaving(true);
     setError("");
     try {
-      const novo = await medalhistasApi.create(form);
-      setItems([novo, ...items]);
-      setForm({ name: "", medal: "Ouro", olympiad: "", course: "", quote: "", photo: "" });
+      if (isEditing) {
+        const atualizado = await medalhistasApi.update(editingId, form);
+        setItems(items.map((x) => (x.id === editingId ? atualizado : x)));
+      } else {
+        const novo = await medalhistasApi.create(form);
+        setItems([novo, ...items]);
+      }
+      resetForm();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -397,11 +457,31 @@ function MedalhistasAdmin({ items, setItems }) {
     }
   };
 
+  const resetForm = () => {
+    setForm(formVazio);
+    setEditingId(null);
+    setError("");
+  };
+
+  const startEdit = (m) => {
+    setForm({
+      name: m.name || "",
+      medal: m.medal || "Ouro",
+      olympiad: m.olympiad || "",
+      course: m.course || "",
+      quote: m.quote || "",
+      photo: m.photo || "",
+    });
+    setEditingId(m.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const remove = async (id) => {
     if (!confirm("Apagar este medalhista?")) return;
     try {
       await medalhistasApi.remove(id);
       setItems(items.filter((x) => x.id !== id));
+      if (editingId === id) resetForm();
     } catch (err) {
       setError(err.message);
     }
@@ -409,12 +489,22 @@ function MedalhistasAdmin({ items, setItems }) {
 
   return (
     <div className="grid lg:grid-cols-2 gap-8">
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+      <div className={`bg-white rounded-2xl border p-6 shadow-sm ${isEditing ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
         <h2 className="font-heading font-bold text-lg text-slate-900 mb-5 flex items-center gap-2">
-          <Plus className="w-5 h-5 text-[hsl(var(--gold))]" /> Novo Medalhista
+          {isEditing ? (
+            <>
+              <Pencil className="w-5 h-5 text-amber-600" />
+              Editar Medalhista
+            </>
+          ) : (
+            <>
+              <Plus className="w-5 h-5 text-[hsl(var(--gold))]" />
+              Novo Medalhista
+            </>
+          )}
         </h2>
         {error && <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>}
-        <form onSubmit={add} className="space-y-4">
+        <form onSubmit={submit} className="space-y-4">
           <Field label="Nome do estudante"><input className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome completo" /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Medalha">
@@ -427,10 +517,21 @@ function MedalhistasAdmin({ items, setItems }) {
           <Field label="Curso / Ano"><input className={inputCls} value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} placeholder="3º ano - Informática" /></Field>
           <Field label="Frase do estudante"><textarea rows={2} className={`${inputCls} resize-none`} value={form.quote} onChange={(e) => setForm({ ...form, quote: e.target.value })} placeholder='"Cada problema resolvido..."' /></Field>
           <ImageUpload label="Foto do estudante" value={form.photo} onChange={(v) => setForm({ ...form, photo: v })} />
-          <button type="submit" disabled={saving} className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? "Salvando..." : "Cadastrar medalhista"}
-          </button>
+          <div className="flex gap-3">
+            {isEditing && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+              >
+                <XCircle className="w-4 h-4" /> Cancelar
+              </button>
+            )}
+            <button type="submit" disabled={saving} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {saving ? "Salvando..." : isEditing ? "Salvar alterações" : "Cadastrar medalhista"}
+            </button>
+          </div>
         </form>
       </div>
 
@@ -438,16 +539,21 @@ function MedalhistasAdmin({ items, setItems }) {
         <h2 className="font-heading font-bold text-lg text-slate-900 mb-4">{items.length} medalhistas cadastrados</h2>
         <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
           {items.map((m) => (
-            <div key={m.id} className="bg-white rounded-xl border border-slate-200 p-4 flex gap-4 shadow-sm">
+            <div key={m.id} className={`bg-white rounded-xl border p-4 flex gap-4 shadow-sm ${editingId === m.id ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
               <img src={m.photo} alt="" className="w-16 h-16 rounded-full object-cover shrink-0 bg-slate-100" />
               <div className="min-w-0 flex-1">
                 <h3 className="font-semibold text-sm text-slate-900">{m.name}</h3>
                 <p className="text-xs text-slate-500">{m.course}</p>
                 <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">{m.medal} • {m.olympiad}</span>
               </div>
-              <button onClick={() => remove(m.id)} className="self-start text-slate-300 hover:text-red-500 transition-colors">
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="self-start flex gap-1">
+                <button onClick={() => startEdit(m)} className="text-slate-300 hover:text-amber-600 transition-colors p-1" title="Editar">
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button onClick={() => remove(m.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Apagar">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -458,26 +564,28 @@ function MedalhistasAdmin({ items, setItems }) {
 
 /* ============ OLIMPÍADAS ============ */
 function OlimpiadasAdmin({ items, setItems }) {
-  const [form, setForm] = useState({
-    name: "",
-    area: "Matemática",
-    level: "",
-    desc: "",
-    medal: "Ouro",
-    site_url: "",
-  });
+  const formVazio = { name: "", area: "Matemática", level: "", desc: "", medal: "Ouro", site_url: "" };
+  const [form, setForm] = useState(formVazio);
+  const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const add = async (e) => {
+  const isEditing = editingId !== null;
+
+  const submit = async (e) => {
     e.preventDefault();
     if (!form.name) return;
     setSaving(true);
     setError("");
     try {
-      const nova = await olimpiadasApi.create(form);
-      setItems([nova, ...items]);
-      setForm({ name: "", area: "Matemática", level: "", desc: "", medal: "Ouro", site_url: "" });
+      if (isEditing) {
+        const atualizada = await olimpiadasApi.update(editingId, form);
+        setItems(items.map((x) => (x.id === editingId ? atualizada : x)));
+      } else {
+        const nova = await olimpiadasApi.create(form);
+        setItems([nova, ...items]);
+      }
+      resetForm();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -485,11 +593,31 @@ function OlimpiadasAdmin({ items, setItems }) {
     }
   };
 
+  const resetForm = () => {
+    setForm(formVazio);
+    setEditingId(null);
+    setError("");
+  };
+
+  const startEdit = (o) => {
+    setForm({
+      name: o.name || "",
+      area: o.area || "Matemática",
+      level: o.level || "",
+      desc: o.desc || "",
+      medal: o.medal || "Ouro",
+      site_url: o.site_url || "",
+    });
+    setEditingId(o.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const remove = async (id) => {
     if (!confirm("Apagar esta olimpíada?")) return;
     try {
       await olimpiadasApi.remove(id);
       setItems(items.filter((x) => x.id !== id));
+      if (editingId === id) resetForm();
     } catch (err) {
       setError(err.message);
     }
@@ -497,12 +625,22 @@ function OlimpiadasAdmin({ items, setItems }) {
 
   return (
     <div className="grid lg:grid-cols-2 gap-8">
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+      <div className={`bg-white rounded-2xl border p-6 shadow-sm ${isEditing ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
         <h2 className="font-heading font-bold text-lg text-slate-900 mb-5 flex items-center gap-2">
-          <Plus className="w-5 h-5 text-[hsl(var(--gold))]" /> Nova Olimpíada
+          {isEditing ? (
+            <>
+              <Pencil className="w-5 h-5 text-amber-600" />
+              Editar Olimpíada
+            </>
+          ) : (
+            <>
+              <Plus className="w-5 h-5 text-[hsl(var(--gold))]" />
+              Nova Olimpíada
+            </>
+          )}
         </h2>
         {error && <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>}
-        <form onSubmit={add} className="space-y-4">
+        <form onSubmit={submit} className="space-y-4">
           <Field label="Nome da olimpíada"><input className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="OBMEP" /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Área">
@@ -518,8 +656,6 @@ function OlimpiadasAdmin({ items, setItems }) {
               {["Ouro", "Prata", "Bronze", "Honra"].map((m) => <option key={m}>{m}</option>)}
             </select>
           </Field>
-
-          {/* 🔗 NOVO: Site oficial */}
           <Field label="Site oficial (URL)">
             <input
               className={inputCls}
@@ -532,11 +668,21 @@ function OlimpiadasAdmin({ items, setItems }) {
               Link que abre no botão "Visitar Site Oficial" da página de Olimpíadas.
             </p>
           </Field>
-
-          <button type="submit" disabled={saving} className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? "Salvando..." : "Cadastrar olimpíada"}
-          </button>
+          <div className="flex gap-3">
+            {isEditing && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+              >
+                <XCircle className="w-4 h-4" /> Cancelar
+              </button>
+            )}
+            <button type="submit" disabled={saving} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {saving ? "Salvando..." : isEditing ? "Salvar alterações" : "Cadastrar olimpíada"}
+            </button>
+          </div>
         </form>
       </div>
 
@@ -544,7 +690,7 @@ function OlimpiadasAdmin({ items, setItems }) {
         <h2 className="font-heading font-bold text-lg text-slate-900 mb-4">{items.length} olimpíadas cadastradas</h2>
         <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
           {items.map((o) => (
-            <div key={o.id} className="bg-white rounded-xl border border-slate-200 p-4 flex gap-4 shadow-sm">
+            <div key={o.id} className={`bg-white rounded-xl border p-4 flex gap-4 shadow-sm ${editingId === o.id ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
               <div className="w-12 h-12 rounded-lg bg-[hsl(var(--navy))]/5 flex items-center justify-center shrink-0">
                 <Trophy className="w-6 h-6 text-[hsl(var(--navy))]" />
               </div>
@@ -563,9 +709,14 @@ function OlimpiadasAdmin({ items, setItems }) {
                   </a>
                 )}
               </div>
-              <button onClick={() => remove(o.id)} className="self-start text-slate-300 hover:text-red-500 transition-colors">
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="self-start flex gap-1">
+                <button onClick={() => startEdit(o)} className="text-slate-300 hover:text-amber-600 transition-colors p-1" title="Editar">
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button onClick={() => remove(o.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Apagar">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -576,19 +727,29 @@ function OlimpiadasAdmin({ items, setItems }) {
 
 /* ============ GALERIA ============ */
 function GaleriaAdmin({ items, setItems }) {
-  const [form, setForm] = useState({ title: "", date: "", category: "Aplicações", photos: 0, image: "" });
+  const formVazio = { title: "", date: "", category: "Aplicações", photos: 0, image: "" };
+  const [form, setForm] = useState(formVazio);
+  const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const add = async (e) => {
+  const isEditing = editingId !== null;
+
+  const submit = async (e) => {
     e.preventDefault();
     if (!form.title) return;
     setSaving(true);
     setError("");
     try {
-      const novo = await galeriaApi.create({ ...form, photos: Number(form.photos) || 0 });
-      setItems([novo, ...items]);
-      setForm({ title: "", date: "", category: "Aplicações", photos: 0, image: "" });
+      const payload = { ...form, photos: Number(form.photos) || 0 };
+      if (isEditing) {
+        const atualizado = await galeriaApi.update(editingId, payload);
+        setItems(items.map((x) => (x.id === editingId ? atualizado : x)));
+      } else {
+        const novo = await galeriaApi.create(payload);
+        setItems([novo, ...items]);
+      }
+      resetForm();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -596,11 +757,30 @@ function GaleriaAdmin({ items, setItems }) {
     }
   };
 
+  const resetForm = () => {
+    setForm(formVazio);
+    setEditingId(null);
+    setError("");
+  };
+
+  const startEdit = (a) => {
+    setForm({
+      title: a.title || "",
+      date: a.date || "",
+      category: a.category || "Aplicações",
+      photos: a.photos || 0,
+      image: a.image || "",
+    });
+    setEditingId(a.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const remove = async (id) => {
     if (!confirm("Apagar este álbum?")) return;
     try {
       await galeriaApi.remove(id);
       setItems(items.filter((x) => x.id !== id));
+      if (editingId === id) resetForm();
     } catch (err) {
       setError(err.message);
     }
@@ -608,12 +788,22 @@ function GaleriaAdmin({ items, setItems }) {
 
   return (
     <div className="grid lg:grid-cols-2 gap-8">
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+      <div className={`bg-white rounded-2xl border p-6 shadow-sm ${isEditing ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
         <h2 className="font-heading font-bold text-lg text-slate-900 mb-5 flex items-center gap-2">
-          <Plus className="w-5 h-5 text-[hsl(var(--gold))]" /> Novo Álbum
+          {isEditing ? (
+            <>
+              <Pencil className="w-5 h-5 text-amber-600" />
+              Editar Álbum
+            </>
+          ) : (
+            <>
+              <Plus className="w-5 h-5 text-[hsl(var(--gold))]" />
+              Novo Álbum
+            </>
+          )}
         </h2>
         {error && <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>}
-        <form onSubmit={add} className="space-y-4">
+        <form onSubmit={submit} className="space-y-4">
           <Field label="Título do evento"><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Aplicação da OBMEP 2026" /></Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Data"><input className={inputCls} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} placeholder="07 JUN 2026" /></Field>
@@ -625,10 +815,21 @@ function GaleriaAdmin({ items, setItems }) {
             </select>
           </Field>
           <ImageUpload label="Imagem de capa do álbum" value={form.image} onChange={(v) => setForm({ ...form, image: v })} />
-          <button type="submit" disabled={saving} className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? "Salvando..." : "Cadastrar álbum"}
-          </button>
+          <div className="flex gap-3">
+            {isEditing && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors"
+              >
+                <XCircle className="w-4 h-4" /> Cancelar
+              </button>
+            )}
+            <button type="submit" disabled={saving} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {saving ? "Salvando..." : isEditing ? "Salvar alterações" : "Cadastrar álbum"}
+            </button>
+          </div>
         </form>
       </div>
 
@@ -636,16 +837,21 @@ function GaleriaAdmin({ items, setItems }) {
         <h2 className="font-heading font-bold text-lg text-slate-900 mb-4">{items.length} álbuns cadastrados</h2>
         <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
           {items.map((a) => (
-            <div key={a.id} className="bg-white rounded-xl border border-slate-200 p-4 flex gap-4 shadow-sm">
+            <div key={a.id} className={`bg-white rounded-xl border p-4 flex gap-4 shadow-sm ${editingId === a.id ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
               <img src={a.image} alt="" className="w-20 h-20 rounded-lg object-cover shrink-0 bg-slate-100" />
               <div className="min-w-0 flex-1">
                 <h3 className="font-semibold text-sm text-slate-900 leading-snug">{a.title}</h3>
                 <p className="text-xs text-slate-400 mt-1">{a.date} • {a.photos} fotos</p>
                 <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[hsl(var(--gold))]/10 text-[hsl(var(--gold))]">{a.category}</span>
               </div>
-              <button onClick={() => remove(a.id)} className="self-start text-slate-300 hover:text-red-500 transition-colors">
-                <Trash2 className="w-4 h-4" />
-              </button>
+              <div className="self-start flex gap-1">
+                <button onClick={() => startEdit(a)} className="text-slate-300 hover:text-amber-600 transition-colors p-1" title="Editar">
+                  <Pencil className="w-4 h-4" />
+                </button>
+                <button onClick={() => remove(a.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Apagar">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
