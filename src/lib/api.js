@@ -94,6 +94,8 @@ export const auth = {
 
 export const noticias = {
   list: () => api.get("/api/noticias"),
+  listPaginado: (skip = 0, limit = 9) =>
+    api.get(`/api/noticias/paginado?skip=${skip}&limit=${limit}`),
   get: (id) => api.get(`/api/noticias/${id}`),
   create: (data) => api.post("/api/noticias", data),
   update: (id, data) => api.put(`/api/noticias/${id}`, data),
@@ -102,6 +104,8 @@ export const noticias = {
 
 export const medalhistas = {
   list: () => api.get("/api/medalhistas"),
+  listPaginado: (skip = 0, limit = 9) =>
+    api.get(`/api/medalhistas/paginado?skip=${skip}&limit=${limit}`),
   get: (id) => api.get(`/api/medalhistas/${id}`),
   create: (data) => api.post("/api/medalhistas", data),
   update: (id, data) => api.put(`/api/medalhistas/${id}`, data),
@@ -110,6 +114,8 @@ export const medalhistas = {
 
 export const olimpiadas = {
   list: () => api.get("/api/olimpiadas"),
+  listPaginado: (skip = 0, limit = 9) =>
+    api.get(`/api/olimpiadas/paginado?skip=${skip}&limit=${limit}`),
   get: (id) => api.get(`/api/olimpiadas/${id}`),
   create: (data) => api.post("/api/olimpiadas", data),
   update: (id, data) => api.put(`/api/olimpiadas/${id}`, data),
@@ -118,6 +124,8 @@ export const olimpiadas = {
 
 export const galeria = {
   list: () => api.get("/api/galeria"),
+  listPaginado: (skip = 0, limit = 8) =>
+    api.get(`/api/galeria/paginado?skip=${skip}&limit=${limit}`),
   get: (id) => api.get(`/api/galeria/${id}`),
   create: (data) => api.post("/api/galeria", data),
   update: (id, data) => api.put(`/api/galeria/${id}`, data),
@@ -126,6 +134,8 @@ export const galeria = {
 
 export const videos = {
   list: () => api.get("/api/videos"),
+  listPaginado: (skip = 0, limit = 6) =>
+    api.get(`/api/videos/paginado?skip=${skip}&limit=${limit}`),
   get: (id) => api.get(`/api/videos/${id}`),
   create: (data) => api.post("/api/videos", data),
   update: (id, data) => api.put(`/api/videos/${id}`, data),
@@ -134,6 +144,8 @@ export const videos = {
 
 export const eventos = {
   list: () => api.get("/api/eventos"),
+  listPaginado: (skip = 0, limit = 9) =>
+    api.get(`/api/eventos/paginado?skip=${skip}&limit=${limit}`),
   get: (id) => api.get(`/api/eventos/${id}`),
   create: (data) => api.post("/api/eventos", data),
   update: (id, data) => api.put(`/api/eventos/${id}`, data),

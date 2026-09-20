@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { Camera, Calendar, Play, Search, ImageIcon, FolderOpen, Video as VideoIcon, X, Youtube, FileVideo } from "lucide-react";
 import { GALLERY_ALBUMS, GALLERY_CATEGORIES } from "@/lib/siteData";
-import { useApiData } from "@/hooks/use-api-data";
+import { useApiPaginado } from "@/hooks/use-api-paginado";
 import { galeria as galeriaApi, videos as videosApi } from "@/lib/api";
+import CarregarMais from "@/components/CarregarMais";
 
 const categoryColors = {
   "Premiações": "bg-amber-100 text-amber-800",
@@ -31,28 +31,15 @@ function getYoutubeId(url) {
 /* ============ MODAL DE VÍDEO ============ */
 function VideoModal({ video, onClose }) {
   if (!video) return null;
-
   const youtubeId = video.video_type === "youtube" ? getYoutubeId(video.youtube_url) : null;
 
   return (
-    <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/90"
-      onClick={onClose}
-    >
-      <div
-        className="relative bg-white rounded-2xl overflow-hidden max-w-4xl w-full shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Botão fechar */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors"
-          title="Fechar"
-        >
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/90" onClick={onClose}>
+      <div className="relative bg-white rounded-2xl overflow-hidden max-w-4xl w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors" title="Fechar">
           <X className="w-5 h-5" />
         </button>
 
-        {/* Player */}
         <div className="bg-black aspect-video">
           {video.video_type === "youtube" && youtubeId ? (
             <iframe
@@ -71,7 +58,6 @@ function VideoModal({ video, onClose }) {
           )}
         </div>
 
-        {/* Info */}
         <div className="p-6 bg-white">
           <div className="flex items-center gap-2 mb-2">
             <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
@@ -84,16 +70,10 @@ function VideoModal({ video, onClose }) {
                 <Calendar className="w-3 h-3" /> {video.date}
               </span>
             )}
-            <span className="text-xs text-slate-400 px-2 py-0.5 rounded-full bg-slate-100">
-              {video.category}
-            </span>
+            <span className="text-xs text-slate-400 px-2 py-0.5 rounded-full bg-slate-100">{video.category}</span>
           </div>
-          <h2 className="font-heading font-extrabold text-xl text-slate-900 mb-2">
-            {video.title}
-          </h2>
-          {video.description && (
-            <p className="text-sm text-slate-600 leading-relaxed">{video.description}</p>
-          )}
+          <h2 className="font-heading font-extrabold text-xl text-slate-900 mb-2">{video.title}</h2>
+          {video.description && <p className="text-sm text-slate-600 leading-relaxed">{video.description}</p>}
         </div>
       </div>
     </div>
@@ -101,13 +81,30 @@ function VideoModal({ video, onClose }) {
 }
 
 export default function Galeria() {
-  const [tab, setTab] = useState("albuns"); // "albuns" | "videos"
+  const [tab, setTab] = useState("albuns");
   const [category, setCategory] = useState("Todos");
   const [search, setSearch] = useState("");
   const [videoAberto, setVideoAberto] = useState(null);
 
-  const { data: albuns, loading: loadingAlbuns } = useApiData(() => galeriaApi.list(), GALLERY_ALBUMS);
-  const { data: videos, loading: loadingVideos } = useApiData(() => videosApi.list(), []);
+  // Álbuns com paginação (8 por vez)
+  const {
+    items: albuns,
+    loading: loadingAlbuns,
+    loadingMore: loadingMoreAlbuns,
+    hasMore: hasMoreAlbuns,
+    total: totalAlbuns,
+    loadMore: loadMoreAlbuns,
+  } = useApiPaginado((skip, limit) => galeriaApi.listPaginado(skip, limit), 8, GALLERY_ALBUMS);
+
+  // Vídeos com paginação (6 por vez)
+  const {
+    items: videos,
+    loading: loadingVideos,
+    loadingMore: loadingMoreVideos,
+    hasMore: hasMoreVideos,
+    total: totalVideos,
+    loadMore: loadMoreVideos,
+  } = useApiPaginado((skip, limit) => videosApi.listPaginado(skip, limit), 6, []);
 
   const filteredAlbuns = albuns.filter((a) => {
     if (category !== "Todos" && a.category !== category) return false;
@@ -119,6 +116,10 @@ export default function Galeria() {
     if (search && !v.title.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
+  // Verifica se tem filtro ativo
+  const temFiltroAlbum = category !== "Todos" || search !== "";
+  const temFiltroVideo = search !== "";
 
   return (
     <div className="pt-16 lg:pt-20">
@@ -136,44 +137,40 @@ export default function Galeria() {
               <h1 className="font-heading font-extrabold" style={{ fontSize: "clamp(2.25rem, 5vw, 4rem)" }}>GALERIA</h1>
               <p className="mt-3 text-white/80 text-lg">Momentos que constroem nossa história</p>
               <p className="mt-4 text-white/60 leading-relaxed max-w-lg">
-                Cada fotografia e cada vídeo preserva um momento que ajudou a construir a história do OlimpIFP2. Reviva eventos,
-                conquistas e experiências que marcaram nossa trajetória.
+                Cada fotografia e cada vídeo preserva um momento que ajudou a construir a história do OlimpIFP2.
+                Reviva eventos, conquistas e experiências que marcaram nossa trajetória.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Tabs Álbuns / Vídeos */}
+      {/* Tabs */}
       <section className="bg-violet-50/60 pt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-3 border-b-2 border-violet-100">
             <button
               onClick={() => setTab("albuns")}
               className={`inline-flex items-center gap-2 px-6 py-3 font-semibold text-sm transition-all border-b-4 -mb-0.5 ${
-                tab === "albuns"
-                  ? "border-violet-600 text-violet-700"
-                  : "border-transparent text-slate-500 hover:text-violet-600"
+                tab === "albuns" ? "border-violet-600 text-violet-700" : "border-transparent text-slate-500 hover:text-violet-600"
               }`}
             >
               <ImageIcon className="w-4 h-4" />
               Álbuns de Fotos
               <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${tab === "albuns" ? "bg-violet-600 text-white" : "bg-slate-200 text-slate-600"}`}>
-                {albuns.length}
+                {totalAlbuns}
               </span>
             </button>
             <button
               onClick={() => setTab("videos")}
               className={`inline-flex items-center gap-2 px-6 py-3 font-semibold text-sm transition-all border-b-4 -mb-0.5 ${
-                tab === "videos"
-                  ? "border-violet-600 text-violet-700"
-                  : "border-transparent text-slate-500 hover:text-violet-600"
+                tab === "videos" ? "border-violet-600 text-violet-700" : "border-transparent text-slate-500 hover:text-violet-600"
               }`}
             >
               <VideoIcon className="w-4 h-4" />
               Vídeos
               <span className={`ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${tab === "videos" ? "bg-violet-600 text-white" : "bg-slate-200 text-slate-600"}`}>
-                {videos.length}
+                {totalVideos}
               </span>
             </button>
           </div>
@@ -210,7 +207,6 @@ export default function Galeria() {
               )}
             </div>
 
-            {/* Categorias (só pra álbuns) */}
             {tab === "albuns" && (
               <div className="flex flex-wrap gap-2">
                 {GALLERY_CATEGORIES.map((c) => (
@@ -243,9 +239,7 @@ export default function Galeria() {
               Álbuns de Eventos
             </h2>
 
-            {loadingAlbuns && (
-              <div className="text-center py-12 text-slate-400">Carregando álbuns...</div>
-            )}
+            {loadingAlbuns && <div className="text-center py-12 text-slate-400">Carregando álbuns...</div>}
 
             {!loadingAlbuns && filteredAlbuns.length === 0 && (
               <div className="text-center py-12 text-slate-400">Nenhum álbum encontrado.</div>
@@ -255,31 +249,18 @@ export default function Galeria() {
               {filteredAlbuns.map((a) => {
                 const catColor = categoryColors[a.category] || "bg-violet-100 text-violet-700";
                 return (
-                  <article
-                    key={a.id}
-                    className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-violet-100 hover:-translate-y-1 transition-all cursor-pointer"
-                  >
+                  <article key={a.id} className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-violet-100 hover:-translate-y-1 transition-all cursor-pointer">
                     <div className="relative aspect-[4/3] bg-slate-100 overflow-hidden">
-                      <img
-                        src={a.image}
-                        alt={a.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                      <img src={a.image} alt={a.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       <span className="absolute top-3 left-3 bg-[hsl(var(--navy))] text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-md">
                         {a.date}
                       </span>
                     </div>
                     <div className="p-4">
-                      <h3 className="font-heading font-bold text-slate-900 leading-snug group-hover:text-violet-700 transition-colors">
-                        {a.title}
-                      </h3>
+                      <h3 className="font-heading font-bold text-slate-900 leading-snug group-hover:text-violet-700 transition-colors">{a.title}</h3>
                       <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5" /> {a.date}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Camera className="w-3.5 h-3.5" /> {a.photos} fotos
-                        </span>
+                        <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" /> {a.date}</span>
+                        <span className="flex items-center gap-1"><Camera className="w-3.5 h-3.5" /> {a.photos} fotos</span>
                       </div>
                       <span className={`mt-3 inline-block text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${catColor}`}>
                         {a.category}
@@ -289,6 +270,25 @@ export default function Galeria() {
                 );
               })}
             </div>
+
+            {/* Botão "Carregar mais" (só sem filtro) */}
+            {!temFiltroAlbum && (
+              <CarregarMais
+                onClick={loadMoreAlbuns}
+                loading={loadingMoreAlbuns}
+                hasMore={hasMoreAlbuns}
+                total={totalAlbuns}
+                shown={albuns.length}
+                label="Carregar mais álbuns"
+                corBase="violet"
+              />
+            )}
+
+            {temFiltroAlbum && hasMoreAlbuns && (
+              <div className="text-center py-8">
+                <p className="text-sm text-slate-400 italic">Limpe os filtros para carregar mais álbuns.</p>
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -304,9 +304,7 @@ export default function Galeria() {
               Vídeos do OlimpIFP2
             </h2>
 
-            {loadingVideos && (
-              <div className="text-center py-12 text-slate-400">Carregando vídeos...</div>
-            )}
+            {loadingVideos && <div className="text-center py-12 text-slate-400">Carregando vídeos...</div>}
 
             {!loadingVideos && filteredVideos.length === 0 && (
               <div className="text-center py-16 bg-white rounded-2xl border border-slate-200">
@@ -320,30 +318,20 @@ export default function Galeria() {
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {filteredVideos.map((v) => (
-                <article
-                  key={v.id}
-                  onClick={() => setVideoAberto(v)}
-                  className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-rose-100 hover:-translate-y-1 transition-all cursor-pointer"
-                >
+                <article key={v.id} onClick={() => setVideoAberto(v)} className="group bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-rose-100 hover:-translate-y-1 transition-all cursor-pointer">
                   <div className="relative aspect-video bg-slate-800 overflow-hidden">
                     {v.thumbnail ? (
-                      <img
-                        src={v.thumbnail}
-                        alt={v.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
+                      <img src={v.thumbnail} alt={v.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <VideoIcon className="w-12 h-12 text-white/30" />
                       </div>
                     )}
-                    {/* Overlay play */}
                     <div className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
                       <div className="w-14 h-14 rounded-full bg-white/90 group-hover:bg-white group-hover:scale-110 flex items-center justify-center transition-all shadow-lg">
                         <Play className="w-6 h-6 text-slate-900 fill-slate-900 ml-1" />
                       </div>
                     </div>
-                    {/* Badge tipo */}
                     <span className={`absolute top-3 left-3 inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${
                       v.video_type === "youtube" ? "bg-red-600 text-white" : "bg-blue-600 text-white"
                     }`}>
@@ -355,24 +343,35 @@ export default function Galeria() {
                       {v.title}
                     </h3>
                     {v.description && (
-                      <p className="mt-1.5 text-sm text-slate-500 leading-relaxed line-clamp-2">
-                        {v.description}
-                      </p>
+                      <p className="mt-1.5 text-sm text-slate-500 leading-relaxed line-clamp-2">{v.description}</p>
                     )}
                     <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
-                      {v.date && (
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> {v.date}
-                        </span>
-                      )}
-                      <span className="px-2 py-0.5 rounded-full bg-slate-100">
-                        {v.category}
-                      </span>
+                      {v.date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {v.date}</span>}
+                      <span className="px-2 py-0.5 rounded-full bg-slate-100">{v.category}</span>
                     </div>
                   </div>
                 </article>
               ))}
             </div>
+
+            {/* Botão "Carregar mais" (só sem busca) */}
+            {!temFiltroVideo && (
+              <CarregarMais
+                onClick={loadMoreVideos}
+                loading={loadingMoreVideos}
+                hasMore={hasMoreVideos}
+                total={totalVideos}
+                shown={videos.length}
+                label="Carregar mais vídeos"
+                corBase="rose"
+              />
+            )}
+
+            {temFiltroVideo && hasMoreVideos && (
+              <div className="text-center py-8">
+                <p className="text-sm text-slate-400 italic">Limpe a busca para carregar mais vídeos.</p>
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -391,10 +390,7 @@ export default function Galeria() {
         </div>
       </section>
 
-      {/* Modal de vídeo */}
-      {videoAberto && (
-        <VideoModal video={videoAberto} onClose={() => setVideoAberto(null)} />
-      )}
+      {videoAberto && <VideoModal video={videoAberto} onClose={() => setVideoAberto(null)} />}
     </div>
   );
 }

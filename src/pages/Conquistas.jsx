@@ -6,74 +6,10 @@ import {
 } from "lucide-react";
 import { MEDALISTS, MEDAL_TYPES, STATS } from "@/lib/siteData";
 import MedalistCard from "@/components/MedalistCard";
-import { useApiData } from "@/hooks/use-api-data";
+import { useApiPaginado } from "@/hooks/use-api-paginado";
 import { medalhistas as medalhistasApi } from "@/lib/api";
+import CarregarMais from "@/components/CarregarMais";
 
-// ─────────────────────────────────────────────────────────
-// MAPA: olimpíada → área (pra filtrar por área)
-// ─────────────────────────────────────────────────────────
-const OLYMPIAD_AREA = {
-  OBMEP: "Matemática",
-  OBM: "Matemática",
-  OBI: "Tecnologia",
-  "OBI Jr": "Tecnologia",
-  ONC: "Ciências da Natureza",
-  OBQ: "Ciências da Natureza",
-  OBF: "Ciências da Natureza",
-  OBB: "Ciências da Natureza",
-  OBA: "Ciências da Natureza",
-  OBNE: "Empreendedorismo",
-  OPL: "Linguagens",
-  OBH: "Humanas",
-};
-
-// Extrai o "código" da olimpíada (ex: "OBMEP 2024" → "OBMEP")
-const extrairSigla = (olympiad) => {
-  if (!olympiad) return "";
-  return olympiad.split(" ")[0].toUpperCase();
-};
-
-// Extrai o ano (ex: "OBMEP 2024" → "2024")
-const extrairAno = (olympiad) => {
-  if (!olympiad) return "";
-  const match = olympiad.match(/\d{4}/);
-  return match ? match[0] : "";
-};
-
-// Deriva a área do medalhista
-const getArea = (m) => OLYMPIAD_AREA[extrairSigla(m.olympiad)] || "Outra";
-
-// Deriva o ano do medalhista (prioriza o ano do olympiad, senão o created_at)
-const getAno = (m) => {
-  const ano = extrairAno(m.olympiad);
-  if (ano) return ano;
-  if (m.created_at) return new Date(m.created_at).getFullYear().toString();
-  return "";
-};
-
-// ─────────────────────────────────────────────────────────
-// LISTAS DE FILTRO (derivadas dinamicamente)
-// ─────────────────────────────────────────────────────────
-const getSiglasDisponiveis = (medalhistas) => {
-  const siglas = new Set(medalhistas.map((m) => extrairSigla(m.olympiad)).filter(Boolean));
-  return ["Todas", ...Array.from(siglas).sort()];
-};
-
-const AREAS_DISPONIVEIS = [
-  "Todas",
-  "Matemática",
-  "Tecnologia",
-  "Ciências da Natureza",
-  "Empreendedorismo",
-  "Linguagens",
-  "Humanas",
-];
-
-const ANOS_DISPONIVEIS = ["Todos", "2026", "2025", "2024", "2023"];
-
-// ─────────────────────────────────────────────────────────
-// CONTEÚDO ESTÁTICO
-// ─────────────────────────────────────────────────────────
 const howItWorks = [
   { icon: Search, title: "Participe", text: "Inscreva-se nas olimpíadas através do projeto.", color: "bg-amber-100 text-amber-700" },
   { icon: Trophy, title: "Compita", text: "Represente o campus com dedicação e estudo.", color: "bg-yellow-100 text-yellow-700" },
@@ -106,9 +42,32 @@ const medalBadgeColors = {
   Participação: "bg-violet-100 text-violet-800 border-violet-300",
 };
 
-// ─────────────────────────────────────────────────────────
-// COMPONENTE PRINCIPAL
-// ─────────────────────────────────────────────────────────
+const OLYMPIAD_AREA = {
+  OBMEP: "Matemática", OBM: "Matemática",
+  OBI: "Tecnologia", "OBI Jr": "Tecnologia",
+  ONC: "Ciências da Natureza", OBQ: "Ciências da Natureza",
+  OBF: "Ciências da Natureza", OBB: "Ciências da Natureza", OBA: "Ciências da Natureza",
+  OBNE: "Empreendedorismo", OPL: "Linguagens", OBH: "Humanas",
+};
+
+const extrairSigla = (olympiad) => olympiad ? olympiad.split(" ")[0].toUpperCase() : "";
+const extrairAno = (olympiad) => olympiad ? (olympiad.match(/\d{4}/)?.[0] || "") : "";
+const getArea = (m) => OLYMPIAD_AREA[extrairSigla(m.olympiad)] || "Outra";
+const getAno = (m) => {
+  const ano = extrairAno(m.olympiad);
+  if (ano) return ano;
+  if (m.created_at) return new Date(m.created_at).getFullYear().toString();
+  return "";
+};
+
+const getSiglasDisponiveis = (medalhistas) => {
+  const siglas = new Set(medalhistas.map((m) => extrairSigla(m.olympiad)).filter(Boolean));
+  return ["Todas", ...Array.from(siglas).sort()];
+};
+
+const AREAS_DISPONIVEIS = ["Todas", "Matemática", "Tecnologia", "Ciências da Natureza", "Empreendedorismo", "Linguagens", "Humanas"];
+const ANOS_DISPONIVEIS = ["Todos", "2026", "2025", "2024", "2023"];
+
 export default function Conquistas() {
   const [search, setSearch] = useState("");
   const [medalType, setMedalType] = useState("Todas");
@@ -118,40 +77,33 @@ export default function Conquistas() {
   const [onlyRecent, setOnlyRecent] = useState(false);
   const [ordenacao, setOrdenacao] = useState("Mais recentes");
 
-  const { data: medalhistas, loading } = useApiData(() => medalhistasApi.list(), MEDALISTS);
+  // Medalhistas com paginação (9 por vez)
+  const {
+    items: medalhistas,
+    loading,
+    loadingMore,
+    hasMore,
+    total,
+    loadMore,
+  } = useApiPaginado((skip, limit) => medalhistasApi.listPaginado(skip, limit), 9, MEDALISTS);
 
   const siglasDisponiveis = useMemo(() => getSiglasDisponiveis(medalhistas), [medalhistas]);
 
   const filtered = useMemo(() => {
     let lista = medalhistas.filter((m) => {
-      // 1. Busca por nome
       if (search && !m.name.toLowerCase().includes(search.toLowerCase())) return false;
-
-      // 2. Pills de medalha
       if (medalType !== "Todas" && m.medal !== medalType) return false;
-
-      // 3. Select olimpíada
       if (olympiad !== "Todas" && extrairSigla(m.olympiad) !== olympiad) return false;
-
-      // 4. Select área
       if (area !== "Todas" && getArea(m) !== area) return false;
-
-      // 5. Select ano
       if (year !== "Todos" && getAno(m) !== year) return false;
-
       return true;
     });
 
-    // 6. Toggle "Destaques recentes" — filtra só do ano corrente (2026)
-    if (onlyRecent) {
-      lista = lista.filter((m) => getAno(m) === "2026");
-    }
+    if (onlyRecent) lista = lista.filter((m) => getAno(m) === "2026");
 
-    // 7. Ordenação
     if (ordenacao === "Nome") {
       lista = [...lista].sort((a, b) => a.name.localeCompare(b.name));
     } else {
-      // "Mais recentes" — usa created_at
       lista = [...lista].sort((a, b) => {
         const da = a.created_at ? new Date(a.created_at).getTime() : 0;
         const db = b.created_at ? new Date(b.created_at).getTime() : 0;
@@ -163,18 +115,11 @@ export default function Conquistas() {
   }, [medalhistas, search, medalType, olympiad, area, year, onlyRecent, ordenacao]);
 
   const limparFiltros = () => {
-    setSearch("");
-    setMedalType("Todas");
-    setOlympiad("Todas");
-    setArea("Todas");
-    setYear("Todos");
-    setOnlyRecent(false);
-    setOrdenacao("Mais recentes");
+    setSearch(""); setMedalType("Todas"); setOlympiad("Todas");
+    setArea("Todas"); setYear("Todos"); setOnlyRecent(false); setOrdenacao("Mais recentes");
   };
 
-  const temFiltroAtivo =
-    search || medalType !== "Todas" || olympiad !== "Todas" ||
-    area !== "Todas" || year !== "Todos" || onlyRecent;
+  const temFiltroAtivo = search || medalType !== "Todas" || olympiad !== "Todas" || area !== "Todas" || year !== "Todos" || onlyRecent;
 
   return (
     <div className="pt-16 lg:pt-20">
@@ -220,10 +165,7 @@ export default function Conquistas() {
               </h2>
               <div className="flex items-center gap-3 flex-wrap">
                 {temFiltroAtivo && (
-                  <button
-                    onClick={limparFiltros}
-                    className="text-xs font-semibold text-amber-700 hover:text-amber-900 underline transition-colors"
-                  >
+                  <button onClick={limparFiltros} className="text-xs font-semibold text-amber-700 hover:text-amber-900 underline transition-colors">
                     Limpar filtros
                   </button>
                 )}
@@ -249,29 +191,17 @@ export default function Conquistas() {
                   className="w-full pl-10 pr-3 py-2.5 rounded-lg border-2 border-amber-100 text-sm focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-colors"
                 />
               </div>
-              <select
-                value={olympiad}
-                onChange={(e) => setOlympiad(e.target.value)}
-                className="px-3 py-2.5 rounded-lg border-2 border-amber-100 text-sm bg-white focus:outline-none focus:border-amber-400"
-              >
+              <select value={olympiad} onChange={(e) => setOlympiad(e.target.value)} className="px-3 py-2.5 rounded-lg border-2 border-amber-100 text-sm bg-white focus:outline-none focus:border-amber-400">
                 {siglasDisponiveis.map((s) => (
                   <option key={s} value={s}>{s === "Todas" ? "Todas as olimpíadas" : s}</option>
                 ))}
               </select>
-              <select
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
-                className="px-3 py-2.5 rounded-lg border-2 border-amber-100 text-sm bg-white focus:outline-none focus:border-amber-400"
-              >
+              <select value={area} onChange={(e) => setArea(e.target.value)} className="px-3 py-2.5 rounded-lg border-2 border-amber-100 text-sm bg-white focus:outline-none focus:border-amber-400">
                 {AREAS_DISPONIVEIS.map((a) => (
                   <option key={a} value={a}>{a === "Todas" ? "Todas as áreas" : a}</option>
                 ))}
               </select>
-              <select
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                className="px-3 py-2.5 rounded-lg border-2 border-amber-100 text-sm bg-white focus:outline-none focus:border-amber-400"
-              >
+              <select value={year} onChange={(e) => setYear(e.target.value)} className="px-3 py-2.5 rounded-lg border-2 border-amber-100 text-sm bg-white focus:outline-none focus:border-amber-400">
                 {ANOS_DISPONIVEIS.map((a) => (
                   <option key={a} value={a}>{a === "Todos" ? "Todos os anos" : a}</option>
                 ))}
@@ -286,9 +216,7 @@ export default function Conquistas() {
                     key={t}
                     onClick={() => setMedalType(t)}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border-2 transition-all ${
-                      isActive
-                        ? "bg-[hsl(var(--navy))] text-white border-[hsl(var(--navy))] shadow-md"
-                        : `${medalBadgeColors[t] || "bg-white text-slate-600 border-slate-200"} hover:scale-105`
+                      isActive ? "bg-[hsl(var(--navy))] text-white border-[hsl(var(--navy))] shadow-md" : `${medalBadgeColors[t] || "bg-white text-slate-600 border-slate-200"} hover:scale-105`
                     }`}
                   >
                     {t}
@@ -298,26 +226,15 @@ export default function Conquistas() {
             </div>
 
             <div className="mt-4 flex items-center justify-between text-sm text-slate-500 flex-wrap gap-3">
-              <span>
-                Mostrando <strong className="text-amber-700">{filtered.length}</strong> de{" "}
-                <strong className="text-slate-700">{medalhistas.length}</strong> conquistas
-              </span>
-              <select
-                value={ordenacao}
-                onChange={(e) => setOrdenacao(e.target.value)}
-                className="px-3 py-1.5 rounded-lg border-2 border-amber-100 text-sm bg-white focus:outline-none focus:border-amber-400"
-              >
+              <span>Mostrando <strong className="text-amber-700">{filtered.length}</strong> de <strong className="text-slate-700">{total}</strong> conquistas</span>
+              <select value={ordenacao} onChange={(e) => setOrdenacao(e.target.value)} className="px-3 py-1.5 rounded-lg border-2 border-amber-100 text-sm bg-white focus:outline-none focus:border-amber-400">
                 <option value="Mais recentes">Ordenar por: Mais recentes</option>
                 <option value="Nome">Ordenar por: Nome</option>
               </select>
             </div>
           </div>
 
-          <Link
-            to="/destaques-anuais"
-            className="mt-5 group flex items-center justify-between gap-4 rounded-2xl p-6 text-white hover:shadow-xl transition-all border-l-4 border-amber-400"
-            style={{ backgroundColor: "#003300" }}
-          >
+          <Link to="/destaques-anuais" className="mt-5 group flex items-center justify-between gap-4 rounded-2xl p-6 text-white hover:shadow-xl transition-all border-l-4 border-amber-400" style={{ backgroundColor: "#003300" }}>
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-xl gold-gradient flex items-center justify-center shrink-0 shadow-lg">
                 <Crown className="w-7 h-7 text-white" />
@@ -339,18 +256,13 @@ export default function Conquistas() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
           <div className="grid lg:grid-cols-4 gap-8">
             <div className="lg:col-span-3">
-              {loading && (
-                <div className="text-center py-12 text-slate-400">Carregando medalhistas...</div>
-              )}
+              {loading && <div className="text-center py-12 text-slate-400">Carregando medalhistas...</div>}
 
               {!loading && filtered.length === 0 && (
                 <div className="text-center py-12 bg-white rounded-2xl border border-slate-200">
                   <p className="text-slate-400 mb-3">Nenhum medalhista encontrado.</p>
                   {temFiltroAtivo && (
-                    <button
-                      onClick={limparFiltros}
-                      className="text-sm font-semibold text-amber-700 hover:text-amber-900 underline"
-                    >
+                    <button onClick={limparFiltros} className="text-sm font-semibold text-amber-700 hover:text-amber-900 underline">
                       Limpar filtros
                     </button>
                   )}
@@ -361,15 +273,34 @@ export default function Conquistas() {
                 {filtered.map((m) => (
                   <div key={m.id ?? m.name} className="flex flex-col">
                     <MedalistCard medalist={m} />
-                    <Link
-                      to="/noticias"
-                      className="mt-3 mx-auto inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors"
-                    >
+                    <Link to="/noticias" className="mt-3 mx-auto inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors">
                       Ler notícia <ArrowRight className="w-4 h-4" />
                     </Link>
                   </div>
                 ))}
               </div>
+
+              {/* Botão "Carregar mais" */}
+              {!temFiltroAtivo && (
+                <CarregarMais
+                  onClick={loadMore}
+                  loading={loadingMore}
+                  hasMore={hasMore}
+                  total={total}
+                  shown={medalhistas.length}
+                  label="Carregar mais medalhistas"
+                  corBase="amber"
+                />
+              )}
+
+              {/* Aviso quando tem filtro */}
+              {temFiltroAtivo && hasMore && (
+                <div className="text-center py-8">
+                  <p className="text-sm text-slate-400 italic">
+                    Limpe os filtros para carregar mais medalhistas.
+                  </p>
+                </div>
+              )}
             </div>
 
             <aside className="space-y-6">
@@ -456,7 +387,6 @@ export default function Conquistas() {
         </div>
       </section>
 
-      {/* Knowledge areas */}
       <section className="py-12 bg-white border-t border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h3 className="font-heading font-bold text-center text-slate-900 mb-2">Nossas áreas do conhecimento</h3>
@@ -466,11 +396,7 @@ export default function Conquistas() {
               const Icon = a.icon;
               const isAreaFiltrada = area === a.label;
               return (
-                <button
-                  key={i}
-                  onClick={() => setArea(isAreaFiltrada ? "Todas" : a.label)}
-                  className="flex flex-col items-center gap-2 group cursor-pointer"
-                >
+                <button key={i} onClick={() => setArea(isAreaFiltrada ? "Todas" : a.label)} className="flex flex-col items-center gap-2 group cursor-pointer">
                   <div className={`w-14 h-14 rounded-2xl ${a.color} flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm ${isAreaFiltrada ? "ring-4 ring-offset-2 ring-amber-400" : ""}`}>
                     <Icon className="w-6 h-6" />
                   </div>

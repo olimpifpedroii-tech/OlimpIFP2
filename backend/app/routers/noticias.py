@@ -1,6 +1,6 @@
 """CRUD de notícias."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.auth.deps import get_current_admin
@@ -15,20 +15,40 @@ router = APIRouter(prefix="/api/noticias", tags=["Notícias"])
 # ─── LISTAR (público) ─────────────────────────────────
 @router.get("", response_model=list[NoticiaResponse])
 def listar_noticias(db: Session = Depends(get_db)):
-    """Retorna todas as notícias, mais recentes primeiro."""
+    """Retorna TODAS as notícias, mais recentes primeiro."""
     return db.query(Noticia).order_by(Noticia.created_at.desc()).all()
+
+
+# ─── LISTAR PAGINADO (público) ────────────────────────
+@router.get("/paginado")
+def listar_noticias_paginado(
+    skip: int = Query(0, ge=0, description="Quantos itens pular"),
+    limit: int = Query(9, ge=1, le=100, description="Quantos itens retornar"),
+    db: Session = Depends(get_db),
+):
+    """
+    Retorna uma página de notícias + metadados.
+    Formato: {"items": [...], "total": 42, "skip": 0, "limit": 9}
+    """
+    query = db.query(Noticia).order_by(Noticia.created_at.desc())
+    total = query.count()
+    items = query.offset(skip).limit(limit).all()
+
+    return {
+        "items": items,
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "has_more": skip + len(items) < total,
+    }
 
 
 # ─── BUSCAR UMA (público) ─────────────────────────────
 @router.get("/{noticia_id}", response_model=NoticiaResponse)
 def obter_noticia(noticia_id: int, db: Session = Depends(get_db)):
-    """Retorna uma notícia específica por ID."""
     noticia = db.get(Noticia, noticia_id)
     if noticia is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Notícia não encontrada",
-        )
+        raise HTTPException(404, "Notícia não encontrada")
     return noticia
 
 
@@ -37,9 +57,8 @@ def obter_noticia(noticia_id: int, db: Session = Depends(get_db)):
 def criar_noticia(
     payload: NoticiaCreate,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin),  # 🔒 protege
+    admin=Depends(get_current_admin),
 ):
-    """Cria uma nova notícia."""
     noticia = Noticia(**payload.model_dump())
     db.add(noticia)
     db.commit()
@@ -53,21 +72,13 @@ def editar_noticia(
     noticia_id: int,
     payload: NoticiaUpdate,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin),  # 🔒 protege
+    admin=Depends(get_current_admin),
 ):
-    """Atualiza uma notícia (campos enviados; os demais ficam intactos)."""
     noticia = db.get(Noticia, noticia_id)
     if noticia is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Notícia não encontrada",
-        )
-
-    # Atualiza só os campos que vieram no payload
-    dados = payload.model_dump(exclude_unset=True)
-    for campo, valor in dados.items():
+        raise HTTPException(404, "Notícia não encontrada")
+    for campo, valor in payload.model_dump(exclude_unset=True).items():
         setattr(noticia, campo, valor)
-
     db.commit()
     db.refresh(noticia)
     return noticia
@@ -78,15 +89,11 @@ def editar_noticia(
 def deletar_noticia(
     noticia_id: int,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin),  # 🔒 protege
+    admin=Depends(get_current_admin),
 ):
-    """Apaga uma notícia."""
     noticia = db.get(Noticia, noticia_id)
     if noticia is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Notícia não encontrada",
-        )
+        raise HTTPException(404, "Notícia não encontrada")
     db.delete(noticia)
     db.commit()
     return None

@@ -1,6 +1,6 @@
 """CRUD de eventos."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.auth.deps import get_current_admin
@@ -14,8 +14,25 @@ router = APIRouter(prefix="/api/eventos", tags=["Eventos"])
 
 @router.get("", response_model=list[EventoResponse])
 def listar_eventos(db: Session = Depends(get_db)):
-    """Lista todos os eventos, mais recentes primeiro."""
     return db.query(Evento).order_by(Evento.created_at.desc()).all()
+
+
+@router.get("/paginado")
+def listar_eventos_paginado(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(9, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Evento).order_by(Evento.created_at.desc())
+    total = query.count()
+    items = query.offset(skip).limit(limit).all()
+    return {
+        "items": items,
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "has_more": skip + len(items) < total,
+    }
 
 
 @router.get("/{evento_id}", response_model=EventoResponse)

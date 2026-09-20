@@ -1,6 +1,6 @@
 """CRUD de álbuns da galeria."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.auth.deps import get_current_admin
@@ -17,6 +17,24 @@ def listar_galeria(db: Session = Depends(get_db)):
     return db.query(GaleriaAlbum).order_by(GaleriaAlbum.created_at.desc()).all()
 
 
+@router.get("/paginado")
+def listar_galeria_paginado(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(8, ge=1, le=100),
+    db: Session = Depends(get_db),
+):
+    query = db.query(GaleriaAlbum).order_by(GaleriaAlbum.created_at.desc())
+    total = query.count()
+    items = query.offset(skip).limit(limit).all()
+    return {
+        "items": items,
+        "total": total,
+        "skip": skip,
+        "limit": limit,
+        "has_more": skip + len(items) < total,
+    }
+
+
 @router.get("/{album_id}", response_model=GaleriaResponse)
 def obter_album(album_id: int, db: Session = Depends(get_db)):
     album = db.get(GaleriaAlbum, album_id)
@@ -29,7 +47,7 @@ def obter_album(album_id: int, db: Session = Depends(get_db)):
 def criar_album(
     payload: GaleriaCreate,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin),
+    admin=Depends(get_current_admin),
 ):
     album = GaleriaAlbum(**payload.model_dump())
     db.add(album)
@@ -43,7 +61,7 @@ def editar_album(
     album_id: int,
     payload: GaleriaUpdate,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin),
+    admin=Depends(get_current_admin),
 ):
     album = db.get(GaleriaAlbum, album_id)
     if album is None:
@@ -59,7 +77,7 @@ def editar_album(
 def deletar_album(
     album_id: int,
     db: Session = Depends(get_db),
-    admin = Depends(get_current_admin),
+    admin=Depends(get_current_admin),
 ):
     album = db.get(GaleriaAlbum, album_id)
     if album is None:

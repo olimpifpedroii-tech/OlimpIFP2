@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Search, Eye, Clock, ArrowRight, TrendingUp, Calendar, Megaphone, Camera, Newspaper, MapPin } from "lucide-react";
 import { NEWS } from "@/lib/siteData";
-import { useApiData } from "@/hooks/use-api-data";
+import { useApiPaginado } from "@/hooks/use-api-paginado";
 import { noticias as noticiasApi, eventos as eventosApi } from "@/lib/api";
+import { useApiData } from "@/hooks/use-api-data";
+import CarregarMais from "@/components/CarregarMais";
 
 const CATEGORIES = ["Todas", "Olimpíadas", "Premiações", "Projeto", "Aulas", "Eventos", "Comunicados", "Institucional"];
 
@@ -23,10 +25,18 @@ export default function Noticias() {
   const [category, setCategory] = useState("Todas");
   const [search, setSearch] = useState("");
 
-  const { data: noticias, loading } = useApiData(() => noticiasApi.list(), NEWS);
-  const { data: eventos } = useApiData(() => eventosApi.list(), []);
+  // Notícias com paginação (9 por vez)
+  const {
+    items: noticias,
+    loading,
+    loadingMore,
+    hasMore,
+    total,
+    loadMore,
+  } = useApiPaginado((skip, limit) => noticiasApi.listPaginado(skip, limit), 9, NEWS);
 
-  // Pega só os 3 primeiros eventos (mais recentes)
+  // Eventos (busca tudo — são poucos)
+  const { data: eventos } = useApiData(() => eventosApi.list(), []);
   const proximosEventos = eventos.slice(0, 3);
 
   const filtered = noticias.filter((n) => {
@@ -58,7 +68,7 @@ export default function Noticias() {
               </p>
               <div className="mt-6 flex gap-6">
                 <div>
-                  <div className="font-heading font-extrabold text-2xl text-[hsl(var(--gold-light))]">{noticias.length}</div>
+                  <div className="font-heading font-extrabold text-2xl text-[hsl(var(--gold-light))]">{total}</div>
                   <div className="text-xs text-white/50">Notícias</div>
                 </div>
                 <div>
@@ -117,10 +127,6 @@ export default function Noticias() {
                 </button>
               ))}
             </div>
-            <select className="px-3 py-2.5 rounded-lg border-2 border-blue-100 text-sm bg-white focus:outline-none focus:border-blue-400">
-              <option>Mais recentes</option>
-              <option>Mais lidas</option>
-            </select>
           </div>
         </div>
       </section>
@@ -129,7 +135,6 @@ export default function Noticias() {
       <section className="py-12 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-4 gap-8">
-            {/* News grid */}
             <div className="lg:col-span-3">
               {loading && (
                 <div className="text-center py-12 text-slate-400">Carregando notícias...</div>
@@ -171,11 +176,21 @@ export default function Noticias() {
                   );
                 })}
               </div>
+
+              {/* Botão "Carregar mais" */}
+              <CarregarMais
+                onClick={loadMore}
+                loading={loadingMore}
+                hasMore={hasMore}
+                total={total}
+                shown={noticias.length}
+                label="Carregar mais notícias"
+                corBase="blue"
+              />
             </div>
 
             {/* Sidebar */}
             <aside className="space-y-6">
-              {/* Most read */}
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <h3 className="font-heading font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <span className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -204,7 +219,6 @@ export default function Noticias() {
                 </div>
               </div>
 
-              {/* Próximos eventos — AGORA DINÂMICO */}
               {proximosEventos.length > 0 && (
                 <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                   <h3 className="font-heading font-bold text-slate-900 mb-4 flex items-center gap-2">
@@ -242,7 +256,6 @@ export default function Noticias() {
                 </div>
               )}
 
-              {/* Suggestion CTA */}
               <div className="bg-[hsl(var(--navy))] rounded-2xl p-6 text-white">
                 <Megaphone className="w-8 h-8 text-[hsl(var(--gold-light))] mb-3" />
                 <h3 className="font-heading font-bold text-lg">Tem uma sugestão de pauta?</h3>
@@ -256,7 +269,6 @@ export default function Noticias() {
         </div>
       </section>
 
-      {/* Footer quote */}
       <section className="py-12 bg-[hsl(var(--navy))]">
         <div className="max-w-4xl mx-auto px-4 text-center text-white">
           <Camera className="w-10 h-10 mx-auto text-[hsl(var(--gold-light))] mb-4" />
