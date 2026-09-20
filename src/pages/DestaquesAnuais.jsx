@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Trophy, Medal, Award, ArrowRight, Calendar, Quote, Crown, ChevronDown, ChevronUp } from "lucide-react";
+import { Trophy, Medal, Award, ArrowRight, Calendar, Quote, Crown } from "lucide-react";
 import { ANNUAL_HIGHLIGHTS } from "@/lib/siteData";
 
 const medalColors = {
@@ -18,11 +18,6 @@ const rankColors = [
 
 export default function DestaquesAnuais() {
   const [year, setYear] = useState("2026");
-  const [expanded, setExpanded] = useState({}); // { [index]: true }
-
-  const toggleExpand = (i) => {
-    setExpanded((prev) => ({ ...prev, [i]: !prev[i] }));
-  };
 
   return (
     <div className="pt-16 lg:pt-20">
@@ -93,9 +88,6 @@ export default function DestaquesAnuais() {
           {ANNUAL_HIGHLIGHTS.map((h, i) => {
             const rank = rankColors[i] || rankColors[0];
             const RankIcon = rank.icon;
-            const isExpanded = !!expanded[i];
-            const conquistasVisiveis = isExpanded ? h.conquests : h.conquests.slice(0, 5);
-            const temMais = h.conquests.length > 5;
 
             return (
               <article
@@ -158,44 +150,20 @@ export default function DestaquesAnuais() {
                     TOTAL: {h.total} CONQUISTAS
                   </div>
 
-                  {/* Conquests list — EXPANSÍVEL */}
+                  {/* Conquistas — todas visíveis */}
                   <div className="mt-5">
                     <h4 className="font-heading font-semibold text-sm text-slate-900 mb-2 flex items-center gap-2">
                       <Award className="w-4 h-4 text-amber-600" />
-                      {isExpanded ? "Todas as conquistas:" : "Principais conquistas:"}
+                      Todas as conquistas ({h.conquests.length}):
                     </h4>
                     <ul className="space-y-1.5">
-                      {conquistasVisiveis.map((c, j) => (
+                      {h.conquests.map((c, j) => (
                         <li key={j} className="flex items-center gap-2 text-sm text-slate-600">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                           {c}
                         </li>
                       ))}
                     </ul>
-
-                    {/* Botão expandir/colapsar — AGORA FUNCIONA */}
-                    {temMais && (
-                      <button
-                        onClick={() => toggleExpand(i)}
-                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors"
-                      >
-                        {isExpanded ? (
-                          <>
-                            Ver menos <ChevronUp className="w-4 h-4" />
-                          </>
-                        ) : (
-                          <>
-                            Ver todas as conquistas ({h.conquests.length}) <ChevronDown className="w-4 h-4" />
-                          </>
-                        )}
-                      </button>
-                    )}
-
-                    {!temMais && h.conquests.length > 0 && (
-                      <p className="mt-3 text-xs text-slate-400 italic">
-                        {h.conquests.length} conquista{h.conquests.length > 1 ? "s" : ""} registrada{h.conquests.length > 1 ? "s" : ""}.
-                      </p>
-                    )}
                   </div>
 
                   {/* Quote */}
