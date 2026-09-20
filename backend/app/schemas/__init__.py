@@ -23,6 +23,12 @@ from app.schemas.galeria import (
     GaleriaResponse,
 )
 from app.schemas.auth import LoginRequest, TokenResponse, AdminResponse
+from app.schemas.video import (
+    VideoBase,
+    VideoCreate,
+    VideoUpdate,
+    VideoResponse,
+)
 
 __all__ = [
     "NoticiaBase", "NoticiaCreate", "NoticiaUpdate", "NoticiaResponse",
@@ -30,4 +36,5 @@ __all__ = [
     "OlimpiadaBase", "OlimpiadaCreate", "OlimpiadaUpdate", "OlimpiadaResponse",
     "GaleriaBase", "GaleriaCreate", "GaleriaUpdate", "GaleriaResponse",
     "LoginRequest", "TokenResponse", "AdminResponse",
+    "VideoBase", "VideoCreate", "VideoUpdate", "VideoResponse",
 ]

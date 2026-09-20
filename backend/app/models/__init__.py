@@ -3,5 +3,6 @@ from app.models.medalista import Medalista
 from app.models.olimpiada import Olimpiada
 from app.models.galeria import GaleriaAlbum
 from app.models.admin import Admin
+from app.models.video import Video
 
-__all__ = ["Noticia", "Medalista", "Olimpiada", "GaleriaAlbum", "Admin"]
+__all__ = ["Noticia", "Medalista", "Olimpiada", "GaleriaAlbum", "Admin", "Video"]

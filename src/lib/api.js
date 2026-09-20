@@ -39,7 +39,6 @@ async function request(path, options = {}) {
     headers,
   });
 
-  // 204 No Content (DELETE) não tem corpo
   if (response.status === 204) {
     return null;
   }
@@ -47,7 +46,6 @@ async function request(path, options = {}) {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    // Se o token expirou, limpa ele
     if (response.status === 401) {
       clearToken();
     }
@@ -91,7 +89,7 @@ export const auth = {
 
 
 // ─────────────────────────────────────────────────────
-// ENDPOINTS PRONTOS POR ENTIDADE
+// ENDPOINTS POR ENTIDADE
 // ─────────────────────────────────────────────────────
 
 export const noticias = {
@@ -124,4 +122,12 @@ export const galeria = {
   create: (data) => api.post("/api/galeria", data),
   update: (id, data) => api.put(`/api/galeria/${id}`, data),
   remove: (id) => api.delete(`/api/galeria/${id}`),
+};
+
+export const videos = {
+  list: () => api.get("/api/videos"),
+  get: (id) => api.get(`/api/videos/${id}`),
+  create: (data) => api.post("/api/videos", data),
+  update: (id, data) => api.put(`/api/videos/${id}`, data),
+  remove: (id) => api.delete(`/api/videos/${id}`),
 };
