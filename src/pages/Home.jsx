@@ -142,7 +142,11 @@ export default function Home() {
                 {noticias.slice(0, 2).map((n, i) => {
                   const c = statColors[i % 4];
                   return (
-                    <Link key={n.id ?? `noticia-${i}`} to="/noticias" className="block group">
+                    <Link
+                      key={n.id ?? `noticia-${i}`}
+                      to={n.id ? `/noticias/${n.id}` : "/noticias"}
+                      className="block group"
+                    >
                       <div className="flex items-start gap-2 mb-1">
                         <span className={`w-6 h-6 rounded-md ${c.bg} flex items-center justify-center shrink-0 mt-0.5`}>
                           <Calendar className={`w-3.5 h-3.5 ${c.text}`} />
@@ -382,7 +386,7 @@ export default function Home() {
                   return (
                     <Link
                       key={n.id ?? `noticia-final-${i}`}
-                      to="/noticias"
+                      to={n.id ? `/noticias/${n.id}` : "/noticias"}
                       className={`block group bg-white rounded-xl border-l-4 ${c.bg.replace("bg-", "border-").replace("-100", "-400")} border-t border-r border-b border-slate-200 p-5 hover:shadow-md transition-shadow`}
                     >
                       <span className={`inline-block px-2.5 py-1 rounded-full ${c.bg} ${c.text} text-[10px] font-bold uppercase tracking-wider mb-2`}>

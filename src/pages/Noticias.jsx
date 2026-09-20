@@ -7,7 +7,6 @@ import { noticias as noticiasApi } from "@/lib/api";
 
 const CATEGORIES = ["Todas", "Olimpíadas", "Premiações", "Projeto", "Aulas", "Eventos", "Comunicados", "Institucional"];
 
-// 🎨 Cores vivas por categoria
 const categoryColors = {
   "Premiações":    { bg: "bg-amber-100",   text: "text-amber-800",   border: "border-amber-400",   hover: "hover:border-amber-500" },
   "Olimpíadas":    { bg: "bg-blue-100",    text: "text-blue-800",    border: "border-blue-400",    hover: "hover:border-blue-500" },
@@ -43,7 +42,7 @@ export default function Noticias() {
 
   return (
     <div className="pt-16 lg:pt-20">
-      {/* Hero — mantém verde, com detalhe azul */}
+      {/* Hero */}
       <section className="relative py-16 lg:py-20 bg-[hsl(var(--navy))] overflow-hidden">
         <div className="absolute inset-0 opacity-20">
           <img src={featured.image} alt="" className="w-full h-full object-cover" />
@@ -74,8 +73,11 @@ export default function Noticias() {
                 </div>
               </div>
             </div>
-            {/* Featured spotlight com borda azul */}
-            <Link to="#" className="group relative rounded-3xl overflow-hidden shadow-2xl ring-4 ring-blue-500/30 hover:ring-blue-400/60 transition-all">
+            {/* Featured spotlight — LINKADO */}
+            <Link
+              to={`/noticias/${featured.id}`}
+              className="group relative rounded-3xl overflow-hidden shadow-2xl ring-4 ring-blue-500/30 hover:ring-blue-400/60 transition-all block"
+            >
               <img src={featured.image} alt={featured.title} className="w-full h-[320px] object-cover" />
               <div className="absolute inset-0" style={{ backgroundColor: "rgba(0,51,0,0.55)" }} />
               <div className="absolute bottom-0 inset-x-0 p-6 text-white">
@@ -90,7 +92,7 @@ export default function Noticias() {
         </div>
       </section>
 
-      {/* Filter bar — fundo azul suave */}
+      {/* Filter bar */}
       <section className="py-6 bg-blue-50/50 sticky top-16 lg:top-20 z-30 border-b border-blue-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
@@ -144,8 +146,9 @@ export default function Noticias() {
                 {filtered.map((n) => {
                   const style = getCategoryStyle(n.category);
                   return (
-                    <article
+                    <Link
                       key={n.id}
+                      to={`/noticias/${n.id}`}
                       className={`group bg-white rounded-2xl border-l-4 ${style.border} ${style.hover} border-t border-r border-b border-slate-100 overflow-hidden shadow-sm hover:shadow-lg hover:shadow-blue-100 hover:-translate-y-1 transition-all flex flex-col`}
                     >
                       <div className="aspect-[16/10] overflow-hidden bg-slate-100">
@@ -167,7 +170,7 @@ export default function Noticias() {
                           <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> {n.read_time}</span>
                         </div>
                       </div>
-                    </article>
+                    </Link>
                   );
                 })}
               </div>
@@ -181,7 +184,7 @@ export default function Noticias() {
 
             {/* Sidebar */}
             <aside className="space-y-6">
-              {/* Most read — ícone azul com fundo */}
+              {/* Most read — LINKADO */}
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <h3 className="font-heading font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <span className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -191,7 +194,7 @@ export default function Noticias() {
                 </h3>
                 <div className="space-y-4">
                   {mostRead.map((n, i) => (
-                    <Link key={n.id} to="#" className="flex items-start gap-3 group">
+                    <Link key={n.id} to={`/noticias/${n.id}`} className="flex items-start gap-3 group">
                       <span className={`font-heading font-extrabold text-2xl leading-none ${i === 0 ? "text-blue-600" : i === 1 ? "text-blue-400" : "text-slate-300"}`}>
                         {i + 1}
                       </span>
@@ -210,7 +213,7 @@ export default function Noticias() {
                 </div>
               </div>
 
-              {/* Upcoming events — datas coloridas */}
+              {/* Upcoming events */}
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <h3 className="font-heading font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <span className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
@@ -231,7 +234,7 @@ export default function Noticias() {
                 </div>
               </div>
 
-              {/* Suggestion CTA — mantém verde (é institucional) */}
+              {/* Suggestion CTA */}
               <div className="bg-[hsl(var(--navy))] rounded-2xl p-6 text-white">
                 <Megaphone className="w-8 h-8 text-[hsl(var(--gold-light))] mb-3" />
                 <h3 className="font-heading font-bold text-lg">Tem uma sugestão de pauta?</h3>
