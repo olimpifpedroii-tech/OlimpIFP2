@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Trophy, Newspaper, Medal, Image as ImageIcon, LayoutDashboard, Plus, Trash2,
   Upload, ArrowLeft, Save, Calendar, LogOut, Loader2, X, ExternalLink, Pencil,
-  XCircle, Video as VideoIcon, Youtube, FileVideo, Play,
+  XCircle, Video as VideoIcon, Youtube, FileVideo, Play, CalendarDays, Clock, MapPin,
 } from "lucide-react";
 import {
   noticias as noticiasApi,
@@ -11,6 +11,7 @@ import {
   olimpiadas as olimpiadasApi,
   galeria as galeriaApi,
   videos as videosApi,
+  eventos as eventosApi,
   auth,
   getToken,
 } from "@/lib/api";
@@ -20,6 +21,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const TABS = [
   { id: "dashboard", label: "Painel", icon: LayoutDashboard },
   { id: "noticias", label: "Notícias", icon: Newspaper },
+  { id: "eventos", label: "Eventos", icon: CalendarDays },
   { id: "medalhistas", label: "Medalhistas", icon: Medal },
   { id: "olimpiadas", label: "Olimpíadas", icon: Trophy },
   { id: "galeria", label: "Galeria", icon: ImageIcon },
@@ -38,7 +40,6 @@ function Field({ label, children }) {
   );
 }
 
-/* ============ HELPERS DE YOUTUBE ============ */
 function getYoutubeId(url) {
   if (!url) return null;
   const patterns = [
@@ -290,6 +291,7 @@ export default function Admin() {
   const navigate = useNavigate();
   const [tab, setTab] = useState("dashboard");
   const [noticias, setNoticias] = useState([]);
+  const [eventos, setEventos] = useState([]);
   const [medalhistas, setMedalhistas] = useState([]);
   const [olimpiadas, setOlimpiadas] = useState([]);
   const [albuns, setAlbuns] = useState([]);
@@ -303,14 +305,16 @@ export default function Admin() {
   const carregarTudo = async () => {
     setLoading(true);
     try {
-      const [n, m, o, g, v] = await Promise.all([
+      const [n, e, m, o, g, v] = await Promise.all([
         noticiasApi.list(),
+        eventosApi.list(),
         medalhistasApi.list(),
         olimpiadasApi.list(),
         galeriaApi.list(),
         videosApi.list(),
       ]);
       setNoticias(n);
+      setEventos(e);
       setMedalhistas(m);
       setOlimpiadas(o);
       setAlbuns(g);
@@ -382,8 +386,9 @@ export default function Admin() {
           })}
         </div>
 
-        {tab === "dashboard" && <Dashboard noticias={noticias} medalhistas={medalhistas} olimpiadas={olimpiadas} albuns={albuns} videos={listaVideos} />}
+        {tab === "dashboard" && <Dashboard noticias={noticias} eventos={eventos} medalhistas={medalhistas} olimpiadas={olimpiadas} albuns={albuns} videos={listaVideos} />}
         {tab === "noticias" && <NoticiasAdmin items={noticias} setItems={setNoticias} />}
+        {tab === "eventos" && <EventosAdmin items={eventos} setItems={setEventos} />}
         {tab === "medalhistas" && <MedalhistasAdmin items={medalhistas} setItems={setMedalhistas} />}
         {tab === "olimpiadas" && <OlimpiadasAdmin items={olimpiadas} setItems={setOlimpiadas} />}
         {tab === "galeria" && <GaleriaAdmin items={albuns} setItems={setAlbuns} />}
@@ -394,9 +399,10 @@ export default function Admin() {
 }
 
 /* ============ DASHBOARD ============ */
-function Dashboard({ noticias, medalhistas, olimpiadas, albuns, videos }) {
+function Dashboard({ noticias, eventos, medalhistas, olimpiadas, albuns, videos }) {
   const cards = [
     { icon: Newspaper, label: "Notícias", count: noticias.length, color: "bg-blue-50 text-blue-700" },
+    { icon: CalendarDays, label: "Eventos", count: eventos.length, color: "bg-orange-50 text-orange-700" },
     { icon: Medal, label: "Medalhistas", count: medalhistas.length, color: "bg-amber-50 text-amber-700" },
     { icon: Trophy, label: "Olimpíadas", count: olimpiadas.length, color: "bg-emerald-50 text-emerald-700" },
     { icon: ImageIcon, label: "Álbuns", count: albuns.length, color: "bg-violet-50 text-violet-700" },
@@ -405,23 +411,144 @@ function Dashboard({ noticias, medalhistas, olimpiadas, albuns, videos }) {
   return (
     <div>
       <h2 className="font-heading font-bold text-xl text-slate-900 mb-6">Visão geral</h2>
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-5">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
         {cards.map((c) => {
           const Icon = c.icon;
           return (
-            <div key={c.label} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-              <div className={`w-12 h-12 rounded-xl ${c.color} flex items-center justify-center mb-3`}>
-                <Icon className="w-6 h-6" />
+            <div key={c.label} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+              <div className={`w-11 h-11 rounded-xl ${c.color} flex items-center justify-center mb-3`}>
+                <Icon className="w-5 h-5" />
               </div>
-              <div className="font-heading font-extrabold text-3xl text-slate-900">{c.count}</div>
-              <div className="text-sm text-slate-500">{c.label}</div>
+              <div className="font-heading font-extrabold text-2xl text-slate-900">{c.count}</div>
+              <div className="text-xs text-slate-500">{c.label}</div>
             </div>
           );
         })}
       </div>
       <div className="mt-6 bg-[hsl(var(--navy))] rounded-2xl p-6 text-white">
         <h3 className="font-heading font-bold text-lg mb-2">Bem-vindo ao painel administrativo</h3>
-        <p className="text-white/70 text-sm">Use as abas acima para cadastrar notícias, medalhistas, olimpíadas, álbuns e vídeos.</p>
+        <p className="text-white/70 text-sm">Use as abas acima para cadastrar notícias, eventos, medalhistas, olimpíadas, álbuns e vídeos.</p>
+      </div>
+    </div>
+  );
+}
+
+/* ============ EVENTOS ============ */
+function EventosAdmin({ items, setItems }) {
+  const formVazio = { title: "", date: "", time: "", location: "", description: "" };
+  const [form, setForm] = useState(formVazio);
+  const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const isEditing = editingId !== null;
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!form.title || !form.date) return;
+    setSaving(true);
+    setError("");
+    try {
+      if (isEditing) {
+        const atualizado = await eventosApi.update(editingId, form);
+        setItems(items.map((x) => (x.id === editingId ? atualizado : x)));
+      } else {
+        const novo = await eventosApi.create(form);
+        setItems([novo, ...items]);
+      }
+      resetForm();
+    } catch (err) { setError(err.message); } finally { setSaving(false); }
+  };
+
+  const resetForm = () => { setForm(formVazio); setEditingId(null); setError(""); };
+
+  const startEdit = (ev) => {
+    setForm({
+      title: ev.title || "",
+      date: ev.date || "",
+      time: ev.time || "",
+      location: ev.location || "",
+      description: ev.description || "",
+    });
+    setEditingId(ev.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const remove = async (id) => {
+    if (!confirm("Apagar este evento?")) return;
+    try {
+      await eventosApi.remove(id);
+      setItems(items.filter((x) => x.id !== id));
+      if (editingId === id) resetForm();
+    } catch (err) { setError(err.message); }
+  };
+
+  return (
+    <div className="grid lg:grid-cols-2 gap-8">
+      <div className={`bg-white rounded-2xl border p-6 shadow-sm ${isEditing ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
+        <h2 className="font-heading font-bold text-lg text-slate-900 mb-5 flex items-center gap-2">
+          {isEditing ? (<><Pencil className="w-5 h-5 text-amber-600" /> Editar Evento</>) : (<><Plus className="w-5 h-5 text-[hsl(var(--gold))]" /> Novo Evento</>)}
+        </h2>
+        {error && <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>}
+        <form onSubmit={submit} className="space-y-4">
+          <Field label="Título do evento">
+            <input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Aplicação da OBMEP 2026" />
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Data">
+              <input className={inputCls} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} placeholder="15 OUT 2026" />
+            </Field>
+            <Field label="Hora (opcional)">
+              <input className={inputCls} value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} placeholder="14h" />
+            </Field>
+          </div>
+
+          <Field label="Local (opcional)">
+            <input className={inputCls} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Auditório do IFPI" />
+          </Field>
+
+          <Field label="Descrição (opcional)">
+            <textarea rows={3} className={`${inputCls} resize-none`} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Breve descrição do evento" />
+          </Field>
+
+          <div className="flex gap-3">
+            {isEditing && (
+              <button type="button" onClick={resetForm} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
+                <XCircle className="w-4 h-4" /> Cancelar
+              </button>
+            )}
+            <button type="submit" disabled={saving} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {saving ? "Salvando..." : isEditing ? "Salvar alterações" : "Cadastrar evento"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div>
+        <h2 className="font-heading font-bold text-lg text-slate-900 mb-4">{items.length} eventos cadastrados</h2>
+        <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
+          {items.map((ev) => (
+            <div key={ev.id} className={`bg-white rounded-xl border p-4 flex gap-4 shadow-sm ${editingId === ev.id ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
+              <div className="w-14 h-14 rounded-lg bg-orange-100 flex flex-col items-center justify-center shrink-0 text-orange-700">
+                <CalendarDays className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-sm text-slate-900 leading-snug">{ev.title}</h3>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
+                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {ev.date}</span>
+                  {ev.time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {ev.time}</span>}
+                  {ev.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {ev.location}</span>}
+                </div>
+              </div>
+              <div className="self-start flex gap-1">
+                <button onClick={() => startEdit(ev)} className="text-slate-300 hover:text-amber-600 transition-colors p-1" title="Editar"><Pencil className="w-4 h-4" /></button>
+                <button onClick={() => remove(ev.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Apagar"><Trash2 className="w-4 h-4" /></button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -451,27 +578,15 @@ function NoticiasAdmin({ items, setItems }) {
         setItems([nova, ...items]);
       }
       resetForm();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { setError(err.message); } finally { setSaving(false); }
   };
 
-  const resetForm = () => {
-    setForm(formVazio);
-    setEditingId(null);
-    setError("");
-  };
+  const resetForm = () => { setForm(formVazio); setEditingId(null); setError(""); };
 
   const startEdit = (n) => {
     setForm({
-      title: n.title || "",
-      date: n.date || "",
-      category: n.category || "Premiações",
-      summary: n.summary || "",
-      content: n.content || "",
-      image: n.image || "",
+      title: n.title || "", date: n.date || "", category: n.category || "Premiações",
+      summary: n.summary || "", content: n.content || "", image: n.image || "",
     });
     setEditingId(n.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -483,9 +598,7 @@ function NoticiasAdmin({ items, setItems }) {
       await noticiasApi.remove(id);
       setItems(items.filter((x) => x.id !== id));
       if (editingId === id) resetForm();
-    } catch (err) {
-      setError(err.message);
-    }
+    } catch (err) { setError(err.message); }
   };
 
   return (
@@ -505,7 +618,7 @@ function NoticiasAdmin({ items, setItems }) {
               </select>
             </Field>
           </div>
-          <Field label="Resumo"><textarea rows={2} className={`${inputCls} resize-none`} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} placeholder="Resumo curto (aparece nos cards)" /></Field>
+          <Field label="Resumo"><textarea rows={2} className={`${inputCls} resize-none`} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })} placeholder="Resumo curto" /></Field>
           <Field label="Conteúdo completo"><textarea rows={6} className={`${inputCls} resize-none`} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} placeholder="Texto completo da notícia" /></Field>
           <ImageUpload label="Imagem de capa" value={form.image} onChange={(v) => setForm({ ...form, image: v })} />
           <div className="flex gap-3">
@@ -569,11 +682,7 @@ function MedalhistasAdmin({ items, setItems }) {
         setItems([novo, ...items]);
       }
       resetForm();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { setError(err.message); } finally { setSaving(false); }
   };
 
   const resetForm = () => { setForm(formVazio); setEditingId(null); setError(""); };
@@ -876,14 +985,8 @@ function GaleriaAdmin({ items, setItems }) {
 /* ============ VÍDEOS ============ */
 function VideosAdmin({ items, setItems }) {
   const formVazio = {
-    title: "",
-    description: "",
-    video_type: "youtube",
-    youtube_url: "",
-    video_url: "",
-    thumbnail: "",
-    date: "",
-    category: "Geral",
+    title: "", description: "", video_type: "youtube",
+    youtube_url: "", video_url: "", thumbnail: "", date: "", category: "Geral",
   };
   const [form, setForm] = useState(formVazio);
   const [editingId, setEditingId] = useState(null);
@@ -893,7 +996,6 @@ function VideosAdmin({ items, setItems }) {
   const isEditing = editingId !== null;
   const isYoutube = form.video_type === "youtube";
 
-  // Atualiza thumbnail automaticamente quando muda URL do YouTube
   const handleYoutubeChange = (url) => {
     const thumb = getYoutubeThumbnail(url);
     setForm({ ...form, youtube_url: url, thumbnail: thumb });
@@ -903,7 +1005,6 @@ function VideosAdmin({ items, setItems }) {
     e.preventDefault();
     if (!form.title) return;
 
-    // Validação: precisa ter URL do YouTube OU vídeo uploaded
     if (isYoutube && !form.youtube_url) {
       setError("Cole a URL do YouTube ou mude para upload de arquivo.");
       return;
@@ -972,7 +1073,6 @@ function VideosAdmin({ items, setItems }) {
             </Field>
           </div>
 
-          {/* Tipo de vídeo */}
           <Field label="Tipo de vídeo">
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -996,30 +1096,18 @@ function VideosAdmin({ items, setItems }) {
             </div>
           </Field>
 
-          {/* Campo condicional */}
           {isYoutube ? (
             <Field label="URL do YouTube">
-              <input
-                className={inputCls}
-                value={form.youtube_url}
-                onChange={(e) => handleYoutubeChange(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
-                type="url"
-              />
-              <p className="mt-1 text-xs text-slate-400">
-                Cole o link do vídeo. A miniatura é preenchida automaticamente.
-              </p>
+              <input className={inputCls} value={form.youtube_url} onChange={(e) => handleYoutubeChange(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." type="url" />
+              <p className="mt-1 text-xs text-slate-400">Cole o link do vídeo. A miniatura é preenchida automaticamente.</p>
             </Field>
           ) : (
             <Field label="Arquivo de vídeo">
               <VideoUpload value={form.video_url} onChange={(v) => setForm({ ...form, video_url: v })} />
-              <p className="mt-1 text-xs text-amber-600">
-                ⚠️ Máx. 50 MB por vídeo (limite do Supabase). Para vídeos maiores, use YouTube.
-              </p>
+              <p className="mt-1 text-xs text-amber-600">⚠️ Máx. 50 MB por vídeo. Para vídeos maiores, use YouTube.</p>
             </Field>
           )}
 
-          {/* Thumbnail preview */}
           {form.thumbnail && (
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">Miniatura</label>
@@ -1030,13 +1118,7 @@ function VideosAdmin({ items, setItems }) {
           )}
 
           <Field label="Descrição (opcional)">
-            <textarea
-              rows={3}
-              className={`${inputCls} resize-none`}
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              placeholder="Breve descrição do vídeo"
-            />
+            <textarea rows={3} className={`${inputCls} resize-none`} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Breve descrição do vídeo" />
           </Field>
 
           <div className="flex gap-3">

@@ -1,33 +1,21 @@
 from app.schemas.noticia import (
-    NoticiaBase,
-    NoticiaCreate,
-    NoticiaUpdate,
-    NoticiaResponse,
+    NoticiaBase, NoticiaCreate, NoticiaUpdate, NoticiaResponse,
 )
 from app.schemas.medalista import (
-    MedalistaBase,
-    MedalistaCreate,
-    MedalistaUpdate,
-    MedalistaResponse,
+    MedalistaBase, MedalistaCreate, MedalistaUpdate, MedalistaResponse,
 )
 from app.schemas.olimpiada import (
-    OlimpiadaBase,
-    OlimpiadaCreate,
-    OlimpiadaUpdate,
-    OlimpiadaResponse,
+    OlimpiadaBase, OlimpiadaCreate, OlimpiadaUpdate, OlimpiadaResponse,
 )
 from app.schemas.galeria import (
-    GaleriaBase,
-    GaleriaCreate,
-    GaleriaUpdate,
-    GaleriaResponse,
+    GaleriaBase, GaleriaCreate, GaleriaUpdate, GaleriaResponse,
 )
 from app.schemas.auth import LoginRequest, TokenResponse, AdminResponse
 from app.schemas.video import (
-    VideoBase,
-    VideoCreate,
-    VideoUpdate,
-    VideoResponse,
+    VideoBase, VideoCreate, VideoUpdate, VideoResponse,
+)
+from app.schemas.evento import (
+    EventoBase, EventoCreate, EventoUpdate, EventoResponse,
 )
 
 __all__ = [
@@ -37,4 +25,5 @@ __all__ = [
     "GaleriaBase", "GaleriaCreate", "GaleriaUpdate", "GaleriaResponse",
     "LoginRequest", "TokenResponse", "AdminResponse",
     "VideoBase", "VideoCreate", "VideoUpdate", "VideoResponse",
+    "EventoBase", "EventoCreate", "EventoUpdate", "EventoResponse",
 ]

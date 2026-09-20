@@ -8,6 +8,7 @@ from app.routers import olimpiadas as olimpiadas_router
 from app.routers import galeria as galeria_router
 from app.routers import upload as upload_router
 from app.routers import videos as videos_router
+from app.routers import eventos as eventos_router
 
 
 app = FastAPI(
@@ -37,3 +38,4 @@ app.include_router(olimpiadas_router.router)
 app.include_router(galeria_router.router)
 app.include_router(upload_router.router)
 app.include_router(videos_router.router)
+app.include_router(eventos_router.router)

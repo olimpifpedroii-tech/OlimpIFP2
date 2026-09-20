@@ -131,3 +131,11 @@ export const videos = {
   update: (id, data) => api.put(`/api/videos/${id}`, data),
   remove: (id) => api.delete(`/api/videos/${id}`),
 };
+
+export const eventos = {
+  list: () => api.get("/api/eventos"),
+  get: (id) => api.get(`/api/eventos/${id}`),
+  create: (data) => api.post("/api/eventos", data),
+  update: (id, data) => api.put(`/api/eventos/${id}`, data),
+  remove: (id) => api.delete(`/api/eventos/${id}`),
+};

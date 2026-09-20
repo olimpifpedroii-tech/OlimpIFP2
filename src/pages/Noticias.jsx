@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, Eye, Clock, ArrowRight, TrendingUp, Calendar, Megaphone, Camera, Newspaper } from "lucide-react";
+import { Search, Eye, Clock, ArrowRight, TrendingUp, Calendar, Megaphone, Camera, Newspaper, MapPin } from "lucide-react";
 import { NEWS } from "@/lib/siteData";
 import { useApiData } from "@/hooks/use-api-data";
-import { noticias as noticiasApi } from "@/lib/api";
+import { noticias as noticiasApi, eventos as eventosApi } from "@/lib/api";
 
 const CATEGORIES = ["Todas", "Olimpíadas", "Premiações", "Projeto", "Aulas", "Eventos", "Comunicados", "Institucional"];
 
@@ -19,17 +19,15 @@ const categoryColors = {
 
 const getCategoryStyle = (cat) => categoryColors[cat] || { bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-300", hover: "hover:border-slate-400" };
 
-const upcomingEvents = [
-  { date: "15 OUT", title: "Aplicação OBMEP 2026" },
-  { date: "22 OUT", title: "Cerimônia de Premiação" },
-  { date: "05 NOV", title: "Aulão preparatório OBI" },
-];
-
 export default function Noticias() {
   const [category, setCategory] = useState("Todas");
   const [search, setSearch] = useState("");
 
   const { data: noticias, loading } = useApiData(() => noticiasApi.list(), NEWS);
+  const { data: eventos } = useApiData(() => eventosApi.list(), []);
+
+  // Pega só os 3 primeiros eventos (mais recentes)
+  const proximosEventos = eventos.slice(0, 3);
 
   const filtered = noticias.filter((n) => {
     if (category !== "Todas" && n.category !== category) return false;
@@ -73,7 +71,6 @@ export default function Noticias() {
                 </div>
               </div>
             </div>
-            {/* Featured spotlight — LINKADO */}
             <Link
               to={`/noticias/${featured.id}`}
               className="group relative rounded-3xl overflow-hidden shadow-2xl ring-4 ring-blue-500/30 hover:ring-blue-400/60 transition-all block"
@@ -174,17 +171,11 @@ export default function Noticias() {
                   );
                 })}
               </div>
-
-              <div className="text-center mt-8">
-                <button className="px-6 py-3 rounded-full border-2 border-blue-200 text-blue-700 font-semibold hover:border-blue-400 hover:bg-blue-50 transition-all">
-                  Carregar mais notícias
-                </button>
-              </div>
             </div>
 
             {/* Sidebar */}
             <aside className="space-y-6">
-              {/* Most read — LINKADO */}
+              {/* Most read */}
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <h3 className="font-heading font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <span className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -213,26 +204,43 @@ export default function Noticias() {
                 </div>
               </div>
 
-              {/* Upcoming events */}
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                <h3 className="font-heading font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <span className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <Calendar className="w-4 h-4 text-amber-600" />
-                  </span>
-                  Próximos eventos
-                </h3>
-                <div className="space-y-3">
-                  {upcomingEvents.map((e, i) => (
-                    <div key={i} className="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-50 transition-colors">
-                      <div className="w-12 h-12 rounded-xl bg-[hsl(var(--navy))] flex flex-col items-center justify-center text-white shrink-0 shadow-sm">
-                        <span className="text-[10px] font-bold leading-none">{e.date.split(" ")[1]}</span>
-                        <span className="text-[9px] leading-none mt-0.5">{e.date.split(" ")[0]}</span>
+              {/* Próximos eventos — AGORA DINÂMICO */}
+              {proximosEventos.length > 0 && (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                  <h3 className="font-heading font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
+                      <Calendar className="w-4 h-4 text-amber-600" />
+                    </span>
+                    Próximos eventos
+                  </h3>
+                  <div className="space-y-3">
+                    {proximosEventos.map((e) => (
+                      <div key={e.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-amber-50 transition-colors">
+                        <div className="w-14 h-14 rounded-xl bg-[hsl(var(--navy))] flex flex-col items-center justify-center text-white shrink-0 shadow-sm">
+                          <span className="text-[10px] font-bold leading-none uppercase">
+                            {e.date.split(" ")[1] || e.date.split(" ")[0]}
+                          </span>
+                          <span className="text-[11px] leading-none mt-0.5 font-bold">
+                            {e.date.split(" ")[0]}
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-slate-900 leading-snug">{e.title}</p>
+                          <div className="flex flex-wrap gap-2 mt-1 text-[11px] text-slate-500">
+                            {e.time && <span>{e.time}</span>}
+                            {e.location && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                {e.location}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm font-semibold text-slate-700">{e.title}</p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Suggestion CTA */}
               <div className="bg-[hsl(var(--navy))] rounded-2xl p-6 text-white">
