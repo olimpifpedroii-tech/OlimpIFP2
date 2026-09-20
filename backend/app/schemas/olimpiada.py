@@ -8,6 +8,7 @@ class OlimpiadaBase(BaseModel):
     level: str = Field(..., max_length=100)
     desc: str = ""
     medal: str = Field("Ouro", max_length=50)
+    site_url: str = ""
 
 
 class OlimpiadaCreate(OlimpiadaBase):
@@ -20,6 +21,7 @@ class OlimpiadaUpdate(BaseModel):
     level: str | None = Field(None, max_length=100)
     desc: str | None = None
     medal: str | None = Field(None, max_length=50)
+    site_url: str | None = None
 
 
 class OlimpiadaResponse(OlimpiadaBase):

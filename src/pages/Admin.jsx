@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Trophy, Newspaper, Medal, Image as ImageIcon, LayoutDashboard, Plus, Trash2,
-  Upload, ArrowLeft, Save, Calendar, LogOut, Loader2, X, Check,
+  Upload, ArrowLeft, Save, Calendar, LogOut, Loader2, X, Check, ExternalLink,
 } from "lucide-react";
 import {
   noticias as noticiasApi,
@@ -53,7 +53,6 @@ function ImageUpload({ label, value, onChange }) {
       const formData = new FormData();
       formData.append("file", file);
 
-      // Upload via XMLHttpRequest pra ter progresso
       const url = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
 
@@ -459,7 +458,14 @@ function MedalhistasAdmin({ items, setItems }) {
 
 /* ============ OLIMPÍADAS ============ */
 function OlimpiadasAdmin({ items, setItems }) {
-  const [form, setForm] = useState({ name: "", area: "Matemática", level: "", desc: "", medal: "Ouro" });
+  const [form, setForm] = useState({
+    name: "",
+    area: "Matemática",
+    level: "",
+    desc: "",
+    medal: "Ouro",
+    site_url: "",
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -471,7 +477,7 @@ function OlimpiadasAdmin({ items, setItems }) {
     try {
       const nova = await olimpiadasApi.create(form);
       setItems([nova, ...items]);
-      setForm({ name: "", area: "Matemática", level: "", desc: "", medal: "Ouro" });
+      setForm({ name: "", area: "Matemática", level: "", desc: "", medal: "Ouro", site_url: "" });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -512,6 +518,21 @@ function OlimpiadasAdmin({ items, setItems }) {
               {["Ouro", "Prata", "Bronze", "Honra"].map((m) => <option key={m}>{m}</option>)}
             </select>
           </Field>
+
+          {/* 🔗 NOVO: Site oficial */}
+          <Field label="Site oficial (URL)">
+            <input
+              className={inputCls}
+              value={form.site_url}
+              onChange={(e) => setForm({ ...form, site_url: e.target.value })}
+              placeholder="https://www.obmep.org.br"
+              type="url"
+            />
+            <p className="mt-1 text-xs text-slate-400">
+              Link que abre no botão "Visitar Site Oficial" da página de Olimpíadas.
+            </p>
+          </Field>
+
           <button type="submit" disabled={saving} className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saving ? "Salvando..." : "Cadastrar olimpíada"}
@@ -530,6 +551,17 @@ function OlimpiadasAdmin({ items, setItems }) {
               <div className="min-w-0 flex-1">
                 <h3 className="font-semibold text-sm text-slate-900">{o.name}</h3>
                 <p className="text-xs text-slate-500">{o.area} • {o.level}</p>
+                {o.site_url && (
+                  <a
+                    href={o.site_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:text-blue-800 mt-1"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Site cadastrado
+                  </a>
+                )}
               </div>
               <button onClick={() => remove(o.id)} className="self-start text-slate-300 hover:text-red-500 transition-colors">
                 <Trash2 className="w-4 h-4" />

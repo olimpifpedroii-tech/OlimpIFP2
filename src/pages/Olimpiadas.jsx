@@ -33,7 +33,6 @@ export default function Olimpiadas() {
   const [area, setArea] = useState("Todas");
   const [modal, setModal] = useState(null);
 
-  // 🔌 Busca olimpíadas da API (fallback pro siteData.js)
   const { data: olimpiadas, loading } = useApiData(() => olimpiadasApi.list(), OLYMPIADS);
 
   const grouped = (area === "Todas" ? olimpiadas : olimpiadas.filter((o) => o.area === area))
@@ -208,13 +207,26 @@ export default function Olimpiadas() {
                 <span className="text-sm font-bold text-gray-700">Medalha: {modal.medal}</span>
               </div>
             </div>
-            <a
-              href="#"
-              className="mt-8 block text-center text-white py-4 rounded-xl font-bold uppercase text-xs hover:brightness-110 transition"
-              style={{ backgroundColor: GREEN_IF }}
-            >
-              Visitar Site Oficial <ExternalLink className="w-4 h-4 inline ml-2" />
-            </a>
+
+            {/* 🔗 Botão "Visitar Site Oficial" — agora com link real */}
+            {modal.site_url ? (
+              <a
+                href={modal.site_url}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-8 block text-center text-white py-4 rounded-xl font-bold uppercase text-xs hover:brightness-110 transition"
+                style={{ backgroundColor: GREEN_IF }}
+              >
+                Visitar Site Oficial <ExternalLink className="w-4 h-4 inline ml-2" />
+              </a>
+            ) : (
+              <button
+                disabled
+                className="mt-8 block w-full text-center py-4 rounded-xl font-bold uppercase text-xs cursor-not-allowed bg-slate-200 text-slate-400"
+              >
+                Site oficial não cadastrado
+              </button>
+            )}
           </div>
         </div>
       )}

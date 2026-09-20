@@ -14,4 +14,5 @@ class Olimpiada(Base):
     level: Mapped[str] = mapped_column(String(100))
     desc: Mapped[str] = mapped_column(Text, default="")
     medal: Mapped[str] = mapped_column(String(50), default="Ouro")
+    site_url: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
