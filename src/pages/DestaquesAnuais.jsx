@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Trophy, Medal, Award, ArrowRight, Calendar, Quote, Crown } from "lucide-react";
+import { Trophy, Medal, Award, ArrowRight, Calendar, Quote, Crown, ChevronDown, ChevronUp } from "lucide-react";
 import { ANNUAL_HIGHLIGHTS } from "@/lib/siteData";
 
-// Cores das medalhas (com contraste melhor)
 const medalColors = {
   ouro: { bg: "bg-amber-400", text: "text-amber-900", light: "bg-amber-100" },
   prata: { bg: "bg-slate-400", text: "text-slate-800", light: "bg-slate-100" },
@@ -19,6 +18,11 @@ const rankColors = [
 
 export default function DestaquesAnuais() {
   const [year, setYear] = useState("2026");
+  const [expanded, setExpanded] = useState({}); // { [index]: true }
+
+  const toggleExpand = (i) => {
+    setExpanded((prev) => ({ ...prev, [i]: !prev[i] }));
+  };
 
   return (
     <div className="pt-16 lg:pt-20">
@@ -42,7 +46,6 @@ export default function DestaquesAnuais() {
                 do conhecimento. Conheça quem faz a história do OlimpIFP2.
               </p>
             </div>
-            {/* Trophies */}
             <div className="flex justify-center lg:justify-end gap-4">
               {rankColors.map((r, i) => {
                 const Icon = r.icon;
@@ -90,6 +93,10 @@ export default function DestaquesAnuais() {
           {ANNUAL_HIGHLIGHTS.map((h, i) => {
             const rank = rankColors[i] || rankColors[0];
             const RankIcon = rank.icon;
+            const isExpanded = !!expanded[i];
+            const conquistasVisiveis = isExpanded ? h.conquests : h.conquests.slice(0, 5);
+            const temMais = h.conquests.length > 5;
+
             return (
               <article
                 key={i}
@@ -151,24 +158,44 @@ export default function DestaquesAnuais() {
                     TOTAL: {h.total} CONQUISTAS
                   </div>
 
-                  {/* Conquests list */}
+                  {/* Conquests list — EXPANSÍVEL */}
                   <div className="mt-5">
                     <h4 className="font-heading font-semibold text-sm text-slate-900 mb-2 flex items-center gap-2">
                       <Award className="w-4 h-4 text-amber-600" />
-                      Principais conquistas:
+                      {isExpanded ? "Todas as conquistas:" : "Principais conquistas:"}
                     </h4>
                     <ul className="space-y-1.5">
-                      {h.conquests.slice(0, 5).map((c, j) => (
+                      {conquistasVisiveis.map((c, j) => (
                         <li key={j} className="flex items-center gap-2 text-sm text-slate-600">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                           {c}
                         </li>
                       ))}
                     </ul>
-                    <button className="mt-2 text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors inline-flex items-center gap-1">
-                      Ver todas as conquistas ({h.total})
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+
+                    {/* Botão expandir/colapsar — AGORA FUNCIONA */}
+                    {temMais && (
+                      <button
+                        onClick={() => toggleExpand(i)}
+                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors"
+                      >
+                        {isExpanded ? (
+                          <>
+                            Ver menos <ChevronUp className="w-4 h-4" />
+                          </>
+                        ) : (
+                          <>
+                            Ver todas as conquistas ({h.conquests.length}) <ChevronDown className="w-4 h-4" />
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    {!temMais && h.conquests.length > 0 && (
+                      <p className="mt-3 text-xs text-slate-400 italic">
+                        {h.conquests.length} conquista{h.conquests.length > 1 ? "s" : ""} registrada{h.conquests.length > 1 ? "s" : ""}.
+                      </p>
+                    )}
                   </div>
 
                   {/* Quote */}
