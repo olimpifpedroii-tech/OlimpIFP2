@@ -4,6 +4,7 @@ import {
   Trophy, Newspaper, Medal, Image as ImageIcon, LayoutDashboard, Plus, Trash2,
   Upload, ArrowLeft, Save, Calendar, LogOut, Loader2, X, ExternalLink, Pencil,
   XCircle, Video as VideoIcon, Youtube, FileVideo, Play, CalendarDays, Clock, MapPin,
+  Award, Gem,
 } from "lucide-react";
 import {
   noticias as noticiasApi,
@@ -30,6 +31,19 @@ const TABS = [
 
 const inputCls = "w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--gold))]/30";
 
+// ─────────────────────────────────────────────────────
+// LISTAS DE OPÇÕES
+// ─────────────────────────────────────────────────────
+
+const MEDALHAS_MEDALHISTA = [
+  "Diamante", "Ouro", "Prata", "Bronze",
+  "Honra ao Mérito", "Classificado", "Participação",
+];
+
+const MEDALHAS_OLIMPIADA = [
+  "Diamante", "Ouro", "Prata", "Bronze", "Honra",
+];
+
 /* ============ HELPERS ============ */
 function Field({ label, children }) {
   return (
@@ -40,6 +54,7 @@ function Field({ label, children }) {
   );
 }
 
+/* ============ HELPERS DE YOUTUBE ============ */
 function getYoutubeId(url) {
   if (!url) return null;
   const patterns = [
@@ -79,9 +94,7 @@ function ImageUpload({ label, value, onChange }) {
         const xhr = new XMLHttpRequest();
 
         xhr.upload.addEventListener("progress", (ev) => {
-          if (ev.lengthComputable) {
-            setProgress(Math.round((ev.loaded / ev.total) * 100));
-          }
+          if (ev.lengthComputable) setProgress(Math.round((ev.loaded / ev.total) * 100));
         });
 
         xhr.addEventListener("load", () => {
@@ -135,17 +148,14 @@ function ImageUpload({ label, value, onChange }) {
             </button>
           </div>
           <label className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-sm font-semibold text-slate-700 cursor-pointer transition-colors">
-            <Upload className="w-4 h-4" />
-            Trocar imagem
+            <Upload className="w-4 h-4" /> Trocar imagem
             <input type="file" accept="image/*" className="hidden" onChange={handleFile} disabled={uploading} />
           </label>
         </div>
       ) : (
         <label
           className={`flex flex-col items-center justify-center gap-2 h-40 rounded-xl border-2 border-dashed transition-colors cursor-pointer ${
-            uploading
-              ? "border-amber-400 bg-amber-50"
-              : "border-slate-300 hover:border-[hsl(var(--gold))] hover:bg-[hsl(var(--gold))]/5"
+            uploading ? "border-amber-400 bg-amber-50" : "border-slate-300 hover:border-[hsl(var(--gold))] hover:bg-[hsl(var(--gold))]/5"
           }`}
         >
           {uploading ? (
@@ -153,10 +163,7 @@ function ImageUpload({ label, value, onChange }) {
               <Loader2 className="w-7 h-7 text-amber-600 animate-spin" />
               <span className="text-sm text-slate-600 font-semibold">Enviando... {progress}%</span>
               <div className="w-32 h-2 rounded-full bg-slate-200 overflow-hidden">
-                <div
-                  className="h-full bg-amber-500 transition-all duration-200"
-                  style={{ width: `${progress}%` }}
-                />
+                <div className="h-full bg-amber-500 transition-all duration-200" style={{ width: `${progress}%` }} />
               </div>
             </>
           ) : (
@@ -197,9 +204,7 @@ function VideoUpload({ value, onChange }) {
         const xhr = new XMLHttpRequest();
 
         xhr.upload.addEventListener("progress", (ev) => {
-          if (ev.lengthComputable) {
-            setProgress(Math.round((ev.loaded / ev.total) * 100));
-          }
+          if (ev.lengthComputable) setProgress(Math.round((ev.loaded / ev.total) * 100));
         });
 
         xhr.addEventListener("load", () => {
@@ -247,16 +252,13 @@ function VideoUpload({ value, onChange }) {
             onClick={() => onChange("")}
             className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-sm font-semibold text-red-700 cursor-pointer transition-colors"
           >
-            <X className="w-4 h-4" />
-            Remover vídeo
+            <X className="w-4 h-4" /> Remover vídeo
           </button>
         </div>
       ) : (
         <label
           className={`flex flex-col items-center justify-center gap-2 h-40 rounded-xl border-2 border-dashed transition-colors cursor-pointer ${
-            uploading
-              ? "border-amber-400 bg-amber-50"
-              : "border-slate-300 hover:border-[hsl(var(--gold))] hover:bg-[hsl(var(--gold))]/5"
+            uploading ? "border-amber-400 bg-amber-50" : "border-slate-300 hover:border-[hsl(var(--gold))] hover:bg-[hsl(var(--gold))]/5"
           }`}
         >
           {uploading ? (
@@ -264,10 +266,7 @@ function VideoUpload({ value, onChange }) {
               <Loader2 className="w-7 h-7 text-amber-600 animate-spin" />
               <span className="text-sm text-slate-600 font-semibold">Enviando... {progress}%</span>
               <div className="w-32 h-2 rounded-full bg-slate-200 overflow-hidden">
-                <div
-                  className="h-full bg-amber-500 transition-all duration-200"
-                  style={{ width: `${progress}%` }}
-                />
+                <div className="h-full bg-amber-500 transition-all duration-200" style={{ width: `${progress}%` }} />
               </div>
             </>
           ) : (
@@ -298,9 +297,7 @@ export default function Admin() {
   const [listaVideos, setListaVideos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    carregarTudo();
-  }, []);
+  useEffect(() => { carregarTudo(); }, []);
 
   const carregarTudo = async () => {
     setLoading(true);
@@ -425,131 +422,6 @@ function Dashboard({ noticias, eventos, medalhistas, olimpiadas, albuns, videos 
           );
         })}
       </div>
-      <div className="mt-6 bg-[hsl(var(--navy))] rounded-2xl p-6 text-white">
-        <h3 className="font-heading font-bold text-lg mb-2">Bem-vindo ao painel administrativo</h3>
-        <p className="text-white/70 text-sm">Use as abas acima para cadastrar notícias, eventos, medalhistas, olimpíadas, álbuns e vídeos.</p>
-      </div>
-    </div>
-  );
-}
-
-/* ============ EVENTOS ============ */
-function EventosAdmin({ items, setItems }) {
-  const formVazio = { title: "", date: "", time: "", location: "", description: "" };
-  const [form, setForm] = useState(formVazio);
-  const [editingId, setEditingId] = useState(null);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-
-  const isEditing = editingId !== null;
-
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!form.title || !form.date) return;
-    setSaving(true);
-    setError("");
-    try {
-      if (isEditing) {
-        const atualizado = await eventosApi.update(editingId, form);
-        setItems(items.map((x) => (x.id === editingId ? atualizado : x)));
-      } else {
-        const novo = await eventosApi.create(form);
-        setItems([novo, ...items]);
-      }
-      resetForm();
-    } catch (err) { setError(err.message); } finally { setSaving(false); }
-  };
-
-  const resetForm = () => { setForm(formVazio); setEditingId(null); setError(""); };
-
-  const startEdit = (ev) => {
-    setForm({
-      title: ev.title || "",
-      date: ev.date || "",
-      time: ev.time || "",
-      location: ev.location || "",
-      description: ev.description || "",
-    });
-    setEditingId(ev.id);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const remove = async (id) => {
-    if (!confirm("Apagar este evento?")) return;
-    try {
-      await eventosApi.remove(id);
-      setItems(items.filter((x) => x.id !== id));
-      if (editingId === id) resetForm();
-    } catch (err) { setError(err.message); }
-  };
-
-  return (
-    <div className="grid lg:grid-cols-2 gap-8">
-      <div className={`bg-white rounded-2xl border p-6 shadow-sm ${isEditing ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
-        <h2 className="font-heading font-bold text-lg text-slate-900 mb-5 flex items-center gap-2">
-          {isEditing ? (<><Pencil className="w-5 h-5 text-amber-600" /> Editar Evento</>) : (<><Plus className="w-5 h-5 text-[hsl(var(--gold))]" /> Novo Evento</>)}
-        </h2>
-        {error && <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>}
-        <form onSubmit={submit} className="space-y-4">
-          <Field label="Título do evento">
-            <input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Aplicação da OBMEP 2026" />
-          </Field>
-
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Data">
-              <input className={inputCls} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} placeholder="15 OUT 2026" />
-            </Field>
-            <Field label="Hora (opcional)">
-              <input className={inputCls} value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} placeholder="14h" />
-            </Field>
-          </div>
-
-          <Field label="Local (opcional)">
-            <input className={inputCls} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Auditório do IFPI" />
-          </Field>
-
-          <Field label="Descrição (opcional)">
-            <textarea rows={3} className={`${inputCls} resize-none`} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Breve descrição do evento" />
-          </Field>
-
-          <div className="flex gap-3">
-            {isEditing && (
-              <button type="button" onClick={resetForm} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
-                <XCircle className="w-4 h-4" /> Cancelar
-              </button>
-            )}
-            <button type="submit" disabled={saving} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {saving ? "Salvando..." : isEditing ? "Salvar alterações" : "Cadastrar evento"}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div>
-        <h2 className="font-heading font-bold text-lg text-slate-900 mb-4">{items.length} eventos cadastrados</h2>
-        <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
-          {items.map((ev) => (
-            <div key={ev.id} className={`bg-white rounded-xl border p-4 flex gap-4 shadow-sm ${editingId === ev.id ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
-              <div className="w-14 h-14 rounded-lg bg-orange-100 flex flex-col items-center justify-center shrink-0 text-orange-700">
-                <CalendarDays className="w-5 h-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-sm text-slate-900 leading-snug">{ev.title}</h3>
-                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
-                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {ev.date}</span>
-                  {ev.time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {ev.time}</span>}
-                  {ev.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {ev.location}</span>}
-                </div>
-              </div>
-              <div className="self-start flex gap-1">
-                <button onClick={() => startEdit(ev)} className="text-slate-300 hover:text-amber-600 transition-colors p-1" title="Editar"><Pencil className="w-4 h-4" /></button>
-                <button onClick={() => remove(ev.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Apagar"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
@@ -561,14 +433,12 @@ function NoticiasAdmin({ items, setItems }) {
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
   const isEditing = editingId !== null;
 
   const submit = async (e) => {
     e.preventDefault();
     if (!form.title || !form.date) return;
-    setSaving(true);
-    setError("");
+    setSaving(true); setError("");
     try {
       if (isEditing) {
         const atualizada = await noticiasApi.update(editingId, form);
@@ -658,21 +528,147 @@ function NoticiasAdmin({ items, setItems }) {
   );
 }
 
-/* ============ MEDALHISTAS ============ */
-function MedalhistasAdmin({ items, setItems }) {
-  const formVazio = { name: "", medal: "Ouro", olympiad: "", course: "", quote: "", photo: "" };
+/* ============ EVENTOS ============ */
+function EventosAdmin({ items, setItems }) {
+  const formVazio = { title: "", date: "", time: "", location: "", description: "" };
   const [form, setForm] = useState(formVazio);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
   const isEditing = editingId !== null;
 
   const submit = async (e) => {
     e.preventDefault();
-    if (!form.name) return;
-    setSaving(true);
-    setError("");
+    if (!form.title || !form.date) return;
+    setSaving(true); setError("");
+    try {
+      if (isEditing) {
+        const atualizado = await eventosApi.update(editingId, form);
+        setItems(items.map((x) => (x.id === editingId ? atualizado : x)));
+      } else {
+        const novo = await eventosApi.create(form);
+        setItems([novo, ...items]);
+      }
+      resetForm();
+    } catch (err) { setError(err.message); } finally { setSaving(false); }
+  };
+
+  const resetForm = () => { setForm(formVazio); setEditingId(null); setError(""); };
+
+  const startEdit = (ev) => {
+    setForm({
+      title: ev.title || "", date: ev.date || "", time: ev.time || "",
+      location: ev.location || "", description: ev.description || "",
+    });
+    setEditingId(ev.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const remove = async (id) => {
+    if (!confirm("Apagar este evento?")) return;
+    try {
+      await eventosApi.remove(id);
+      setItems(items.filter((x) => x.id !== id));
+      if (editingId === id) resetForm();
+    } catch (err) { setError(err.message); }
+  };
+
+  return (
+    <div className="grid lg:grid-cols-2 gap-8">
+      <div className={`bg-white rounded-2xl border p-6 shadow-sm ${isEditing ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
+        <h2 className="font-heading font-bold text-lg text-slate-900 mb-5 flex items-center gap-2">
+          {isEditing ? (<><Pencil className="w-5 h-5 text-amber-600" /> Editar Evento</>) : (<><Plus className="w-5 h-5 text-[hsl(var(--gold))]" /> Novo Evento</>)}
+        </h2>
+        {error && <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>}
+        <form onSubmit={submit} className="space-y-4">
+          <Field label="Título do evento"><input className={inputCls} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Aplicação da OBMEP 2026" /></Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Data"><input className={inputCls} value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} placeholder="15 OUT 2026" /></Field>
+            <Field label="Hora (opcional)"><input className={inputCls} value={form.time} onChange={(e) => setForm({ ...form, time: e.target.value })} placeholder="14h" /></Field>
+          </div>
+          <Field label="Local (opcional)"><input className={inputCls} value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="Auditório do IFPI" /></Field>
+          <Field label="Descrição (opcional)"><textarea rows={3} className={`${inputCls} resize-none`} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Breve descrição do evento" /></Field>
+          <div className="flex gap-3">
+            {isEditing && (
+              <button type="button" onClick={resetForm} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
+                <XCircle className="w-4 h-4" /> Cancelar
+              </button>
+            )}
+            <button type="submit" disabled={saving} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold disabled:opacity-50">
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {saving ? "Salvando..." : isEditing ? "Salvar alterações" : "Cadastrar evento"}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div>
+        <h2 className="font-heading font-bold text-lg text-slate-900 mb-4">{items.length} eventos cadastrados</h2>
+        <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
+          {items.map((ev) => (
+            <div key={ev.id} className={`bg-white rounded-xl border p-4 flex gap-4 shadow-sm ${editingId === ev.id ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
+              <div className="w-14 h-14 rounded-lg bg-orange-100 flex flex-col items-center justify-center shrink-0 text-orange-700">
+                <CalendarDays className="w-5 h-5" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-semibold text-sm text-slate-900 leading-snug">{ev.title}</h3>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500 mt-1">
+                  <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {ev.date}</span>
+                  {ev.time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {ev.time}</span>}
+                  {ev.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {ev.location}</span>}
+                </div>
+              </div>
+              <div className="self-start flex gap-1">
+                <button onClick={() => startEdit(ev)} className="text-slate-300 hover:text-amber-600 transition-colors p-1" title="Editar"><Pencil className="w-4 h-4" /></button>
+                <button onClick={() => remove(ev.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Apagar"><Trash2 className="w-4 h-4" /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============ MEDALHISTAS ============ */
+function MedalhistasAdmin({ items, setItems }) {
+  const formVazio = {
+    name: "", medal: "", has_trophy: false, trophies: [],
+    olympiad: "", course: "", quote: "", photo: "",
+  };
+  const [form, setForm] = useState(formVazio);
+  const [editingId, setEditingId] = useState(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const [novoTrofeu, setNovoTrofeu] = useState("");
+
+  const isEditing = editingId !== null;
+  const temMedalha = !!form.medal;
+
+  const addTrofeu = () => {
+    if (!novoTrofeu.trim()) return;
+    setForm({ ...form, trophies: [...form.trophies, novoTrofeu.trim()], has_trophy: true });
+    setNovoTrofeu("");
+  };
+
+  const removeTrofeu = (idx) => {
+    const novas = form.trophies.filter((_, i) => i !== idx);
+    setForm({ ...form, trophies: novas, has_trophy: novas.length > 0 });
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+
+    if (!form.name) {
+      setError("Nome é obrigatório.");
+      return;
+    }
+    if (!form.medal && form.trophies.length === 0) {
+      setError("É preciso ter uma medalha OU pelo menos um troféu.");
+      return;
+    }
+
+    setSaving(true); setError("");
     try {
       if (isEditing) {
         const atualizado = await medalhistasApi.update(editingId, form);
@@ -685,12 +681,23 @@ function MedalhistasAdmin({ items, setItems }) {
     } catch (err) { setError(err.message); } finally { setSaving(false); }
   };
 
-  const resetForm = () => { setForm(formVazio); setEditingId(null); setError(""); };
+  const resetForm = () => {
+    setForm(formVazio);
+    setEditingId(null);
+    setError("");
+    setNovoTrofeu("");
+  };
 
   const startEdit = (m) => {
     setForm({
-      name: m.name || "", medal: m.medal || "Ouro", olympiad: m.olympiad || "",
-      course: m.course || "", quote: m.quote || "", photo: m.photo || "",
+      name: m.name || "",
+      medal: m.medal || "",
+      has_trophy: m.has_trophy || false,
+      trophies: Array.isArray(m.trophies) ? m.trophies : [],
+      olympiad: m.olympiad || "",
+      course: m.course || "",
+      quote: m.quote || "",
+      photo: m.photo || "",
     });
     setEditingId(m.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -714,17 +721,67 @@ function MedalhistasAdmin({ items, setItems }) {
         {error && <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-700 text-sm">{error}</div>}
         <form onSubmit={submit} className="space-y-4">
           <Field label="Nome do estudante"><input className={inputCls} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome completo" /></Field>
+
+          <Field label="Medalha (opcional se tiver troféu)">
+            <select className={inputCls} value={form.medal} onChange={(e) => setForm({ ...form, medal: e.target.value })}>
+              <option value="">— Sem medalha —</option>
+              {MEDALHAS_MEDALHISTA.map((m) => <option key={m} value={m}>{m}</option>)}
+            </select>
+          </Field>
+
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Medalha">
-              <select className={inputCls} value={form.medal} onChange={(e) => setForm({ ...form, medal: e.target.value })}>
-                {["Ouro", "Prata", "Bronze", "Honra ao Mérito", "Classificado", "Participação"].map((m) => <option key={m}>{m}</option>)}
-              </select>
-            </Field>
             <Field label="Olimpíada"><input className={inputCls} value={form.olympiad} onChange={(e) => setForm({ ...form, olympiad: e.target.value })} placeholder="OBMEP 2024" /></Field>
+            <Field label="Curso / Ano"><input className={inputCls} value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} placeholder="3º ano - Informática" /></Field>
           </div>
-          <Field label="Curso / Ano"><input className={inputCls} value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} placeholder="3º ano - Informática" /></Field>
+
+          {/* ─── TROFÉUS ─── */}
+          <div className={`p-4 rounded-xl border-2 ${temMedalha ? "border-slate-200 bg-slate-50" : "border-amber-300 bg-amber-50"}`}>
+            <div className="flex items-center gap-2 mb-3">
+              <Trophy className="w-4 h-4 text-amber-600" />
+              <h3 className="font-semibold text-sm text-slate-800">
+                Troféus {!temMedalha && <span className="text-red-600">(obrigatório)</span>}
+              </h3>
+            </div>
+
+            {form.trophies.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {form.trophies.map((t, i) => (
+                  <div key={i} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-slate-200">
+                    <Award className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span className="text-sm text-slate-800 flex-1">{t}</span>
+                    <button type="button" onClick={() => removeTrofeu(i)} className="text-slate-400 hover:text-red-500 transition-colors">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <input
+                className={inputCls}
+                value={novoTrofeu}
+                onChange={(e) => setNovoTrofeu(e.target.value)}
+                placeholder="Nome do troféu (ex: Melhor da Escola)"
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTrofeu(); } }}
+              />
+              <button
+                type="button"
+                onClick={addTrofeu}
+                disabled={!novoTrofeu.trim()}
+                className="px-4 py-2.5 rounded-lg bg-amber-500 text-white font-semibold text-sm hover:bg-amber-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Se o aluno não ganhou medalha, adicione pelo menos 1 troféu.
+            </p>
+          </div>
+
           <Field label="Frase do estudante"><textarea rows={2} className={`${inputCls} resize-none`} value={form.quote} onChange={(e) => setForm({ ...form, quote: e.target.value })} placeholder='"Cada problema resolvido..."' /></Field>
           <ImageUpload label="Foto do estudante" value={form.photo} onChange={(v) => setForm({ ...form, photo: v })} />
+
           <div className="flex gap-3">
             {isEditing && (
               <button type="button" onClick={resetForm} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
@@ -742,20 +799,42 @@ function MedalhistasAdmin({ items, setItems }) {
       <div>
         <h2 className="font-heading font-bold text-lg text-slate-900 mb-4">{items.length} medalhistas cadastrados</h2>
         <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
-          {items.map((m) => (
-            <div key={m.id} className={`bg-white rounded-xl border p-4 flex gap-4 shadow-sm ${editingId === m.id ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
-              <img src={m.photo} alt="" className="w-16 h-16 rounded-full object-cover shrink-0 bg-slate-100" />
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-sm text-slate-900">{m.name}</h3>
-                <p className="text-xs text-slate-500">{m.course}</p>
-                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">{m.medal} • {m.olympiad}</span>
+          {items.map((m) => {
+            const trofeus = Array.isArray(m.trophies) ? m.trophies : [];
+            return (
+              <div key={m.id} className={`bg-white rounded-xl border p-4 flex gap-4 shadow-sm ${editingId === m.id ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
+                <img src={m.photo} alt="" className="w-16 h-16 rounded-full object-cover shrink-0 bg-slate-100" />
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-sm text-slate-900">{m.name}</h3>
+                  <p className="text-xs text-slate-500">{m.course}</p>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {m.medal && (
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        m.medal === "Diamante" ? "bg-cyan-100 text-cyan-800" :
+                        m.medal === "Ouro" ? "bg-amber-100 text-amber-800" :
+                        m.medal === "Prata" ? "bg-slate-100 text-slate-700" :
+                        m.medal === "Bronze" ? "bg-orange-100 text-orange-800" :
+                        "bg-emerald-100 text-emerald-800"
+                      }`}>
+                        {m.medal === "Diamante" && <Gem className="w-3 h-3" />}
+                        {m.medal} • {m.olympiad}
+                      </span>
+                    )}
+                    {trofeus.length > 0 && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                        <Trophy className="w-3 h-3" />
+                        {trofeus.length} {trofeus.length === 1 ? "troféu" : "troféus"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="self-start flex gap-1">
+                  <button onClick={() => startEdit(m)} className="text-slate-300 hover:text-amber-600 transition-colors p-1" title="Editar"><Pencil className="w-4 h-4" /></button>
+                  <button onClick={() => remove(m.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Apagar"><Trash2 className="w-4 h-4" /></button>
+                </div>
               </div>
-              <div className="self-start flex gap-1">
-                <button onClick={() => startEdit(m)} className="text-slate-300 hover:text-amber-600 transition-colors p-1" title="Editar"><Pencil className="w-4 h-4" /></button>
-                <button onClick={() => remove(m.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Apagar"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -764,7 +843,7 @@ function MedalhistasAdmin({ items, setItems }) {
 
 /* ============ OLIMPÍADAS ============ */
 function OlimpiadasAdmin({ items, setItems }) {
-  const formVazio = { name: "", area: "Matemática", level: "", desc: "", medal: "Ouro", site_url: "" };
+  const formVazio = { name: "", area: "Matemática", level: "", desc: "", medals: [], site_url: "" };
   const [form, setForm] = useState(formVazio);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -772,11 +851,18 @@ function OlimpiadasAdmin({ items, setItems }) {
 
   const isEditing = editingId !== null;
 
+  const toggleMedalha = (medalha) => {
+    const tem = form.medals.includes(medalha);
+    const novas = tem
+      ? form.medals.filter((m) => m !== medalha)
+      : [...form.medals, medalha];
+    setForm({ ...form, medals: novas });
+  };
+
   const submit = async (e) => {
     e.preventDefault();
     if (!form.name) return;
-    setSaving(true);
-    setError("");
+    setSaving(true); setError("");
     try {
       if (isEditing) {
         const atualizada = await olimpiadasApi.update(editingId, form);
@@ -793,8 +879,12 @@ function OlimpiadasAdmin({ items, setItems }) {
 
   const startEdit = (o) => {
     setForm({
-      name: o.name || "", area: o.area || "Matemática", level: o.level || "",
-      desc: o.desc || "", medal: o.medal || "Ouro", site_url: o.site_url || "",
+      name: o.name || "",
+      area: o.area || "Matemática",
+      level: o.level || "",
+      desc: o.desc || "",
+      medals: Array.isArray(o.medals) ? o.medals : [],
+      site_url: o.site_url || "",
     });
     setEditingId(o.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -827,14 +917,46 @@ function OlimpiadasAdmin({ items, setItems }) {
             <Field label="Nível"><input className={inputCls} value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} placeholder="Ensino Médio" /></Field>
           </div>
           <Field label="Descrição"><textarea rows={3} className={`${inputCls} resize-none`} value={form.desc} onChange={(e) => setForm({ ...form, desc: e.target.value })} placeholder="Descrição da olimpíada" /></Field>
-          <Field label="Medalha conquistada">
-            <select className={inputCls} value={form.medal} onChange={(e) => setForm({ ...form, medal: e.target.value })}>
-              {["Ouro", "Prata", "Bronze", "Honra"].map((m) => <option key={m}>{m}</option>)}
-            </select>
-          </Field>
+
+          {/* ─── MEDALHAS (MÚLTIPLA ESCOLHA) ─── */}
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
+              Medalhas conquistadas (pode marcar várias)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {MEDALHAS_OLIMPIADA.map((m) => {
+                const ativa = form.medals.includes(m);
+                const cor = m === "Diamante" ? "cyan" : m === "Ouro" ? "amber" : m === "Prata" ? "slate" : m === "Bronze" ? "orange" : "emerald";
+                const cls = {
+                  cyan:   { on: "bg-cyan-600 text-white border-cyan-600", off: "bg-white text-cyan-700 border-cyan-200 hover:border-cyan-400" },
+                  amber:  { on: "bg-amber-600 text-white border-amber-600", off: "bg-white text-amber-700 border-amber-200 hover:border-amber-400" },
+                  slate:  { on: "bg-slate-600 text-white border-slate-600", off: "bg-white text-slate-700 border-slate-300 hover:border-slate-500" },
+                  orange: { on: "bg-orange-600 text-white border-orange-600", off: "bg-white text-orange-700 border-orange-200 hover:border-orange-400" },
+                  emerald:{ on: "bg-emerald-600 text-white border-emerald-600", off: "bg-white text-emerald-700 border-emerald-200 hover:border-emerald-400" },
+                }[cor];
+                return (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => toggleMedalha(m)}
+                    className={`px-4 py-2 rounded-full text-sm font-semibold border-2 transition-all ${ativa ? cls.on : cls.off}`}
+                  >
+                    {m}
+                  </button>
+                );
+              })}
+            </div>
+            {form.medals.length > 0 && (
+              <p className="mt-2 text-xs text-slate-500">
+                Selecionadas: {form.medals.join(", ")}
+              </p>
+            )}
+          </div>
+
           <Field label="Site oficial (URL)">
             <input className={inputCls} value={form.site_url} onChange={(e) => setForm({ ...form, site_url: e.target.value })} placeholder="https://www.obmep.org.br" type="url" />
           </Field>
+
           <div className="flex gap-3">
             {isEditing && (
               <button type="button" onClick={resetForm} className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border-2 border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors">
@@ -852,26 +974,44 @@ function OlimpiadasAdmin({ items, setItems }) {
       <div>
         <h2 className="font-heading font-bold text-lg text-slate-900 mb-4">{items.length} olimpíadas cadastradas</h2>
         <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2">
-          {items.map((o) => (
-            <div key={o.id} className={`bg-white rounded-xl border p-4 flex gap-4 shadow-sm ${editingId === o.id ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
-              <div className="w-12 h-12 rounded-lg bg-[hsl(var(--navy))]/5 flex items-center justify-center shrink-0">
-                <Trophy className="w-6 h-6 text-[hsl(var(--navy))]" />
+          {items.map((o) => {
+            const medals = Array.isArray(o.medals) ? o.medals : [];
+            return (
+              <div key={o.id} className={`bg-white rounded-xl border p-4 flex gap-4 shadow-sm ${editingId === o.id ? "border-amber-400 ring-2 ring-amber-100" : "border-slate-200"}`}>
+                <div className="w-12 h-12 rounded-lg bg-[hsl(var(--navy))]/5 flex items-center justify-center shrink-0">
+                  <Trophy className="w-6 h-6 text-[hsl(var(--navy))]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-semibold text-sm text-slate-900">{o.name}</h3>
+                  <p className="text-xs text-slate-500">{o.area} • {o.level}</p>
+                  {medals.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {medals.map((m) => (
+                        <span key={m} className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          m === "Diamante" ? "bg-cyan-100 text-cyan-800" :
+                          m === "Ouro" ? "bg-amber-100 text-amber-800" :
+                          m === "Prata" ? "bg-slate-100 text-slate-700" :
+                          m === "Bronze" ? "bg-orange-100 text-orange-800" :
+                          "bg-emerald-100 text-emerald-800"
+                        }`}>
+                          {m}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {o.site_url && (
+                    <a href={o.site_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:text-blue-800 mt-1">
+                      <ExternalLink className="w-3 h-3" /> Site cadastrado
+                    </a>
+                  )}
+                </div>
+                <div className="self-start flex gap-1">
+                  <button onClick={() => startEdit(o)} className="text-slate-300 hover:text-amber-600 transition-colors p-1" title="Editar"><Pencil className="w-4 h-4" /></button>
+                  <button onClick={() => remove(o.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Apagar"><Trash2 className="w-4 h-4" /></button>
+                </div>
               </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-sm text-slate-900">{o.name}</h3>
-                <p className="text-xs text-slate-500">{o.area} • {o.level}</p>
-                {o.site_url && (
-                  <a href={o.site_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-600 hover:text-blue-800 mt-1">
-                    <ExternalLink className="w-3 h-3" /> Site cadastrado
-                  </a>
-                )}
-              </div>
-              <div className="self-start flex gap-1">
-                <button onClick={() => startEdit(o)} className="text-slate-300 hover:text-amber-600 transition-colors p-1" title="Editar"><Pencil className="w-4 h-4" /></button>
-                <button onClick={() => remove(o.id)} className="text-slate-300 hover:text-red-500 transition-colors p-1" title="Apagar"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -885,14 +1025,12 @@ function GaleriaAdmin({ items, setItems }) {
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-
   const isEditing = editingId !== null;
 
   const submit = async (e) => {
     e.preventDefault();
     if (!form.title) return;
-    setSaving(true);
-    setError("");
+    setSaving(true); setError("");
     try {
       const payload = { ...form, photos: Number(form.photos) || 0 };
       if (isEditing) {
@@ -1014,8 +1152,7 @@ function VideosAdmin({ items, setItems }) {
       return;
     }
 
-    setSaving(true);
-    setError("");
+    setSaving(true); setError("");
     try {
       if (isEditing) {
         const atualizado = await videosApi.update(editingId, form);
@@ -1078,18 +1215,14 @@ function VideosAdmin({ items, setItems }) {
               <button
                 type="button"
                 onClick={() => setForm({ ...form, video_type: "youtube" })}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 text-sm font-semibold transition-all ${
-                  isYoutube ? "border-red-500 bg-red-50 text-red-700" : "border-slate-200 text-slate-600 hover:border-slate-300"
-                }`}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 text-sm font-semibold transition-all ${isYoutube ? "border-red-500 bg-red-50 text-red-700" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}
               >
                 <Youtube className="w-4 h-4" /> YouTube
               </button>
               <button
                 type="button"
                 onClick={() => setForm({ ...form, video_type: "upload" })}
-                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 text-sm font-semibold transition-all ${
-                  !isYoutube ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300"
-                }`}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 text-sm font-semibold transition-all ${!isYoutube ? "border-blue-500 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}
               >
                 <FileVideo className="w-4 h-4" /> Upload
               </button>

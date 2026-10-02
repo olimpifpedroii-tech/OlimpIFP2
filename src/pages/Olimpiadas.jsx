@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   BookOpen, Users, Trophy, ExternalLink, ChevronRight,
-  Calculator, Leaf, Code, Languages, Landmark, Rocket, Layers, X, Award,
+  Calculator, Leaf, Code, Languages, Landmark, Rocket, Layers, X, Award, Gem,
 } from "lucide-react";
 import { OLYMPIADS, OLYMPIAD_AREAS } from "@/lib/siteData";
 import { useApiData } from "@/hooks/use-api-data";
@@ -28,6 +28,15 @@ const heroStats = [
   { icon: Users, label: "Amizades" },
   { icon: Trophy, label: "Conquistas" },
 ];
+
+// Cores por medalha
+const medalBadgeColor = {
+  Diamante: "bg-cyan-100 text-cyan-800 border-cyan-300",
+  Ouro: "bg-amber-100 text-amber-800 border-amber-300",
+  Prata: "bg-slate-100 text-slate-700 border-slate-300",
+  Bronze: "bg-orange-100 text-orange-800 border-orange-300",
+  Honra: "bg-emerald-100 text-emerald-800 border-emerald-300",
+};
 
 export default function Olimpiadas() {
   const [area, setArea] = useState("Todas");
@@ -76,9 +85,7 @@ export default function Olimpiadas() {
             <button
               key={a}
               onClick={() => setArea(a)}
-              className={`px-5 py-1.5 cursor-pointer transition-colors rounded-full ${
-                area === a ? "bg-white" : "hover:opacity-80"
-              }`}
+              className={`px-5 py-1.5 cursor-pointer transition-colors rounded-full ${area === a ? "bg-white" : "hover:opacity-80"}`}
               style={area === a ? { color: GREEN_IF } : {}}
             >
               {a}
@@ -89,9 +96,7 @@ export default function Olimpiadas() {
 
       {/* CONTEÚDO */}
       <main className="max-w-7xl mx-auto px-6 py-12 space-y-16">
-        {loading && (
-          <div className="text-center py-12 text-slate-400">Carregando olimpíadas...</div>
-        )}
+        {loading && <div className="text-center py-12 text-slate-400">Carregando olimpíadas...</div>}
 
         {!loading && Object.entries(grouped).length === 0 && (
           <div className="text-center py-12 text-slate-400">Nenhuma olimpíada encontrada.</div>
@@ -121,29 +126,41 @@ export default function Olimpiadas() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {items.map((o) => (
-                  <div
-                    key={o.id}
-                    onClick={() => setModal({ ...o, theme })}
-                    className="bg-white p-6 rounded-2xl shadow-lg cursor-pointer group hover:-translate-y-2 transition-all"
-                    style={{ borderBottom: `4px solid ${theme.border}` }}
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: theme.light }}>
-                        <Trophy className="w-6 h-6" style={{ color: theme.solid }} />
-                      </div>
-                      <ExternalLink className="w-4 h-4 text-gray-300 group-hover:opacity-100 transition" style={{ color: theme.solid }} />
-                    </div>
-                    <h3 className="font-extrabold text-lg mb-2" style={{ color: theme.dark }}>{o.name}</h3>
-                    <p className="text-xs text-gray-500 mb-6 line-clamp-2">{o.desc}</p>
-                    <span
-                      className="text-[10px] font-bold uppercase border px-2 py-1 rounded"
-                      style={{ color: theme.solid, borderColor: theme.light }}
+                {items.map((o) => {
+                  const medals = Array.isArray(o.medals) ? o.medals : [];
+                  return (
+                    <div
+                      key={o.id}
+                      onClick={() => setModal({ ...o, theme })}
+                      className="bg-white p-6 rounded-2xl shadow-lg cursor-pointer group hover:-translate-y-2 transition-all"
+                      style={{ borderBottom: `4px solid ${theme.border}` }}
                     >
-                      {o.medal}
-                    </span>
-                  </div>
-                ))}
+                      <div className="flex justify-between items-center mb-4">
+                        <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: theme.light }}>
+                          <Trophy className="w-6 h-6" style={{ color: theme.solid }} />
+                        </div>
+                        <ExternalLink className="w-4 h-4 text-gray-300 group-hover:opacity-100 transition" style={{ color: theme.solid }} />
+                      </div>
+                      <h3 className="font-extrabold text-lg mb-2" style={{ color: theme.dark }}>{o.name}</h3>
+                      <p className="text-xs text-gray-500 mb-4 line-clamp-2">{o.desc}</p>
+
+                      {/* MÚLTIPLAS MEDALHAS */}
+                      {medals.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {medals.map((m) => (
+                            <span
+                              key={m}
+                              className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-1 rounded border ${medalBadgeColor[m] || "bg-slate-100 text-slate-700 border-slate-300"}`}
+                            >
+                              {m === "Diamante" && <Gem className="w-3 h-3" />}
+                              {m}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </section>
           );
@@ -168,68 +185,78 @@ export default function Olimpiadas() {
       </section>
 
       {/* MODAL */}
-      {modal && (
-        <div
-          className="fixed inset-0 z-[1000] flex items-center justify-center p-5"
-          style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
-          onClick={() => setModal(null)}
-        >
+      {modal && (() => {
+        const medals = Array.isArray(modal.medals) ? modal.medals : [];
+        return (
           <div
-            className="bg-white max-w-md w-full rounded-2xl p-8 relative"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-5"
+            style={{ backgroundColor: "rgba(0,0,0,0.8)" }}
+            onClick={() => setModal(null)}
           >
-            <button
-              onClick={() => setModal(null)}
-              className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <div className="flex items-center space-x-4 mb-8">
-              <div className="p-4 rounded-2xl" style={{ backgroundColor: modal.theme.light }}>
-                <Trophy className="w-7 h-7" style={{ color: GOLD }} />
-              </div>
-              <div>
-                <h2 className="text-2xl font-extrabold leading-tight" style={{ color: modal.theme.dark }}>{modal.name}</h2>
-                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{modal.area}</p>
-              </div>
-            </div>
-            <div className="space-y-6">
-              <div>
-                <h4 className="text-[10px] font-black uppercase text-gray-400 mb-2">Sobre a Olimpíada</h4>
-                <p className="text-sm leading-relaxed text-gray-600 font-medium">{modal.desc}</p>
-              </div>
-              <div className="p-4 rounded-xl border-l-4" style={{ backgroundColor: modal.theme.light, borderColor: modal.theme.border }}>
-                <h4 className="text-[9px] font-black uppercase mb-1" style={{ color: modal.theme.solid }}>Público Alvo</h4>
-                <p className="text-sm font-bold italic" style={{ color: modal.theme.dark }}>{modal.level}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Award className="w-5 h-5" style={{ color: GOLD }} />
-                <span className="text-sm font-bold text-gray-700">Medalha: {modal.medal}</span>
-              </div>
-            </div>
-
-            {/* 🔗 Botão "Visitar Site Oficial" — agora com link real */}
-            {modal.site_url ? (
-              <a
-                href={modal.site_url}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-8 block text-center text-white py-4 rounded-xl font-bold uppercase text-xs hover:brightness-110 transition"
-                style={{ backgroundColor: GREEN_IF }}
-              >
-                Visitar Site Oficial <ExternalLink className="w-4 h-4 inline ml-2" />
-              </a>
-            ) : (
-              <button
-                disabled
-                className="mt-8 block w-full text-center py-4 rounded-xl font-bold uppercase text-xs cursor-not-allowed bg-slate-200 text-slate-400"
-              >
-                Site oficial não cadastrado
+            <div className="bg-white max-w-md w-full rounded-2xl p-8 relative" onClick={(e) => e.stopPropagation()}>
+              <button onClick={() => setModal(null)} className="absolute top-4 right-4 text-gray-300 hover:text-red-500 transition">
+                <X className="w-6 h-6" />
               </button>
-            )}
+              <div className="flex items-center space-x-4 mb-8">
+                <div className="p-4 rounded-2xl" style={{ backgroundColor: modal.theme.light }}>
+                  <Trophy className="w-7 h-7" style={{ color: GOLD }} />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-extrabold leading-tight" style={{ color: modal.theme.dark }}>{modal.name}</h2>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{modal.area}</p>
+                </div>
+              </div>
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-[10px] font-black uppercase text-gray-400 mb-2">Sobre a Olimpíada</h4>
+                  <p className="text-sm leading-relaxed text-gray-600 font-medium">{modal.desc}</p>
+                </div>
+                <div className="p-4 rounded-xl border-l-4" style={{ backgroundColor: modal.theme.light, borderColor: modal.theme.border }}>
+                  <h4 className="text-[9px] font-black uppercase mb-1" style={{ color: modal.theme.solid }}>Público Alvo</h4>
+                  <p className="text-sm font-bold italic" style={{ color: modal.theme.dark }}>{modal.level}</p>
+                </div>
+
+                {/* MÚLTIPLAS MEDALHAS */}
+                {medals.length > 0 && (
+                  <div>
+                    <h4 className="text-[10px] font-black uppercase text-gray-400 mb-2 flex items-center gap-2">
+                      <Award className="w-4 h-4" style={{ color: GOLD }} />
+                      Medalhas conquistadas
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {medals.map((m) => (
+                        <span
+                          key={m}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase border-2 ${medalBadgeColor[m] || "bg-slate-100 text-slate-700 border-slate-300"}`}
+                        >
+                          {m === "Diamante" && <Gem className="w-3.5 h-3.5" />}
+                          {m}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {modal.site_url ? (
+                <a
+                  href={modal.site_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-8 block text-center text-white py-4 rounded-xl font-bold uppercase text-xs hover:brightness-110 transition"
+                  style={{ backgroundColor: GREEN_IF }}
+                >
+                  Visitar Site Oficial <ExternalLink className="w-4 h-4 inline ml-2" />
+                </a>
+              ) : (
+                <button disabled className="mt-8 block w-full text-center py-4 rounded-xl font-bold uppercase text-xs cursor-not-allowed bg-slate-200 text-slate-400">
+                  Site oficial não cadastrado
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

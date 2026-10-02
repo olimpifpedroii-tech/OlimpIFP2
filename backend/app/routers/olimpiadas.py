@@ -1,5 +1,7 @@
 """CRUD de olimpíadas."""
 
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -10,6 +12,13 @@ from app.schemas import OlimpiadaCreate, OlimpiadaResponse, OlimpiadaUpdate
 
 
 router = APIRouter(prefix="/api/olimpiadas", tags=["Olimpíadas"])
+
+
+def _serializar_medals(dados: dict) -> dict:
+    """Converte a lista `medals` em string JSON pra salvar no banco."""
+    if "medals" in dados and isinstance(dados["medals"], list):
+        dados["medals"] = json.dumps(dados["medals"])
+    return dados
 
 
 @router.get("", response_model=list[OlimpiadaResponse])
@@ -49,7 +58,8 @@ def criar_olimpiada(
     db: Session = Depends(get_db),
     admin=Depends(get_current_admin),
 ):
-    olimpiada = Olimpiada(**payload.model_dump())
+    dados = _serializar_medals(payload.model_dump())
+    olimpiada = Olimpiada(**dados)
     db.add(olimpiada)
     db.commit()
     db.refresh(olimpiada)
@@ -66,7 +76,8 @@ def editar_olimpiada(
     olimpiada = db.get(Olimpiada, olimpiada_id)
     if olimpiada is None:
         raise HTTPException(404, "Olimpíada não encontrada")
-    for campo, valor in payload.model_dump(exclude_unset=True).items():
+    dados = _serializar_medals(payload.model_dump(exclude_unset=True))
+    for campo, valor in dados.items():
         setattr(olimpiada, campo, valor)
     db.commit()
     db.refresh(olimpiada)

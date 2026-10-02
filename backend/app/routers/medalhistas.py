@@ -1,5 +1,7 @@
 """CRUD de medalhistas."""
 
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -10,6 +12,13 @@ from app.schemas import MedalistaCreate, MedalistaResponse, MedalistaUpdate
 
 
 router = APIRouter(prefix="/api/medalhistas", tags=["Medalhistas"])
+
+
+def _serializar_trophies(dados: dict) -> dict:
+    """Converte a lista `trophies` em string JSON pra salvar no banco."""
+    if "trophies" in dados and isinstance(dados["trophies"], list):
+        dados["trophies"] = json.dumps(dados["trophies"])
+    return dados
 
 
 @router.get("", response_model=list[MedalistaResponse])
@@ -49,7 +58,8 @@ def criar_medalista(
     db: Session = Depends(get_db),
     admin=Depends(get_current_admin),
 ):
-    medalista = Medalista(**payload.model_dump())
+    dados = _serializar_trophies(payload.model_dump())
+    medalista = Medalista(**dados)
     db.add(medalista)
     db.commit()
     db.refresh(medalista)
@@ -66,7 +76,8 @@ def editar_medalista(
     medalista = db.get(Medalista, medalista_id)
     if medalista is None:
         raise HTTPException(404, "Medalista não encontrado")
-    for campo, valor in payload.model_dump(exclude_unset=True).items():
+    dados = _serializar_trophies(payload.model_dump(exclude_unset=True))
+    for campo, valor in dados.items():
         setattr(medalista, campo, valor)
     db.commit()
     db.refresh(medalista)
