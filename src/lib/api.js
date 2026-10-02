@@ -4,7 +4,6 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const TOKEN_KEY = "olimpifp2_token";
 
-
 // ─────────────────────────────────────────────────────
 // GERENCIAMENTO DO TOKEN
 // ─────────────────────────────────────────────────────
@@ -17,9 +16,8 @@ export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
 export const isAuthenticated = () => Boolean(getToken());
 
-
 // ─────────────────────────────────────────────────────
-// REQUISIÇÃO BASE
+// REQUISIÇÃO BASE (com timeout de 90s para o Render acordar)
 // ─────────────────────────────────────────────────────
 
 async function request(path, options = {}) {
@@ -34,10 +32,27 @@ async function request(path, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
+
+  let response;
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers,
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === "AbortError") {
+      throw new Error(
+        "O servidor demorou para responder. Ele pode estar iniciando — tente de novo em alguns segundos."
+      );
+    }
+    throw new Error("Não foi possível conectar ao servidor. Tente novamente.");
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (response.status === 204) {
     return null;
@@ -56,7 +71,6 @@ async function request(path, options = {}) {
   return data;
 }
 
-
 // ─────────────────────────────────────────────────────
 // MÉTODOS PÚBLICOS
 // ─────────────────────────────────────────────────────
@@ -67,7 +81,6 @@ export const api = {
   put: (path, body) => request(path, { method: "PUT", body: JSON.stringify(body) }),
   delete: (path) => request(path, { method: "DELETE" }),
 };
-
 
 // ─────────────────────────────────────────────────────
 // HELPERS DE AUTENTICAÇÃO
@@ -86,7 +99,6 @@ export const auth = {
     clearToken();
   },
 };
-
 
 // ─────────────────────────────────────────────────────
 // ENDPOINTS POR ENTIDADE
