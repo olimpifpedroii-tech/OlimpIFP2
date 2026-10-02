@@ -13,6 +13,8 @@ class Olimpiada(Base):
     area: Mapped[str] = mapped_column(String(100))
     level: Mapped[str] = mapped_column(String(100))
     desc: Mapped[str] = mapped_column(Text, default="")
-    medal: Mapped[str] = mapped_column(String(50), default="Ouro")
+    # ⚠️ MUDOU: agora é uma lista de medalhas em JSON
+    # Ex: ["Ouro", "Prata"] ou ["Diamante"]
+    medals: Mapped[str] = mapped_column(Text, default="[]")
     site_url: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

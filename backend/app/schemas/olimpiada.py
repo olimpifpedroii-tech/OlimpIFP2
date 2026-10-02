@@ -7,7 +7,7 @@ class OlimpiadaBase(BaseModel):
     area: str = Field(..., max_length=100)
     level: str = Field(..., max_length=100)
     desc: str = ""
-    medal: str = Field("Ouro", max_length=50)
+    medals: list[str] = []  # Lista de medalhas: ["Ouro", "Prata"]
     site_url: str = ""
 
 
@@ -20,7 +20,7 @@ class OlimpiadaUpdate(BaseModel):
     area: str | None = Field(None, max_length=100)
     level: str | None = Field(None, max_length=100)
     desc: str | None = None
-    medal: str | None = Field(None, max_length=50)
+    medals: list[str] | None = None
     site_url: str | None = None
 
 
