@@ -4,7 +4,7 @@ import {
   Trophy, Users, Medal, Layers, BookOpen, Leaf, Target, TrendingUp,
   ArrowRight, Megaphone, Calendar, Award, ChevronLeft, ChevronRight, Star,
 } from "lucide-react";
-import { STATS, PILLARS, FEATURE_BAR, MEDALISTS, NEWS } from "@/lib/siteData";
+import { FEATURE_BAR } from "@/lib/siteData";
 import MedalistCard from "@/components/MedalistCard";
 import { useApiData } from "@/hooks/use-api-data";
 import { noticias as noticiasApi, medalhistas as medalhistasApi } from "@/lib/api";
@@ -30,8 +30,8 @@ export default function Home() {
   const [carouselIdx, setCarouselIdx] = useState(0);
   const visible = 3;
 
-  const { data: noticias } = useApiData(() => noticiasApi.list(), NEWS);
-  const { data: medalhistas } = useApiData(() => medalhistasApi.list(), MEDALISTS);
+  const { data: noticias } = useApiData(() => noticiasApi.list(), []);
+  const { data: medalhistas } = useApiData(() => medalhistasApi.list(), []);
 
   const maxIdx = Math.max(0, medalhistas.length - visible);
 

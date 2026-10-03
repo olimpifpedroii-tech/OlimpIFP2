@@ -1,13 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Trophy, Medal, Award, ArrowRight, Calendar, Quote, Crown } from "lucide-react";
-import { ANNUAL_HIGHLIGHTS } from "@/lib/siteData";
+import { Trophy, Medal, Award, ArrowRight, Calendar, Crown } from "lucide-react";
+import { medalhistas as medalhistasApi } from "@/lib/api";
+
+const PONTOS = {
+  Diamante: 30,
+  Ouro: 12,
+  Prata: 3,
+  Bronze: 1,
+  "Honra ao Mérito": 0.75,
+  "Menção Honrosa": 0.5,
+};
+
+const ORDEM_MEDALHAS = ["Diamante", "Ouro", "Prata", "Bronze", "Honra ao Mérito", "Menção Honrosa"];
 
 const medalColors = {
-  ouro: { bg: "bg-amber-400", text: "text-amber-900", light: "bg-amber-100" },
-  prata: { bg: "bg-slate-400", text: "text-slate-800", light: "bg-slate-100" },
-  bronze: { bg: "bg-orange-500", text: "text-orange-900", light: "bg-orange-100" },
-  merito: { bg: "bg-emerald-500", text: "text-emerald-900", light: "bg-emerald-100" },
+  Diamante: { bg: "bg-cyan-500", text: "text-cyan-900", light: "bg-cyan-100" },
+  Ouro: { bg: "bg-amber-400", text: "text-amber-900", light: "bg-amber-100" },
+  Prata: { bg: "bg-slate-400", text: "text-slate-800", light: "bg-slate-100" },
+  Bronze: { bg: "bg-orange-500", text: "text-orange-900", light: "bg-orange-100" },
+  "Honra ao Mérito": { bg: "bg-emerald-500", text: "text-emerald-900", light: "bg-emerald-100" },
+  "Menção Honrosa": { bg: "bg-teal-500", text: "text-teal-900", light: "bg-teal-100" },
 };
 
 const rankColors = [
@@ -16,193 +29,166 @@ const rankColors = [
   { bg: "bg-orange-600", label: "3º Lugar", icon: Award },
 ];
 
+const getAno = (m) => {
+  const anoOlimpiada = m.olympiad?.match(/\b(20\d{2})\b/)?.[1];
+  if (anoOlimpiada) return anoOlimpiada;
+  if (m.created_at) return new Date(m.created_at).getFullYear().toString();
+  return "";
+};
+
+const normalizar = (texto = "") => texto.trim().toLocaleLowerCase("pt-BR").replace(/\s+/g, " ");
+
 export default function DestaquesAnuais() {
-  const [year, setYear] = useState("2026");
+  const [medalhistas, setMedalhistas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [year, setYear] = useState("");
+
+  useEffect(() => {
+    let ativo = true;
+    medalhistasApi.list()
+      .then((dados) => {
+        if (!ativo) return;
+        setMedalhistas(Array.isArray(dados) ? dados : []);
+      })
+      .catch((err) => ativo && setError(err.message || "Não foi possível carregar os medalhistas."))
+      .finally(() => ativo && setLoading(false));
+    return () => { ativo = false; };
+  }, []);
+
+  const anos = useMemo(() => {
+    return [...new Set(medalhistas.map(getAno).filter(Boolean))].sort((a, b) => Number(b) - Number(a));
+  }, [medalhistas]);
+
+  useEffect(() => {
+    if (!year && anos.length) setYear(anos[0]);
+  }, [anos, year]);
+
+  const ranking = useMemo(() => {
+    if (!year) return [];
+    const grupos = new Map();
+
+    medalhistas
+      .filter((m) => getAno(m) === year && PONTOS[m.medal] !== undefined)
+      .forEach((m) => {
+        // Nome + curso evita misturar alunos homônimos da mesma edição.
+        const chave = `${normalizar(m.name)}|${normalizar(m.course)}`;
+        if (!grupos.has(chave)) {
+          grupos.set(chave, {
+            name: m.name,
+            course: m.course,
+            photo: m.photo,
+            quote: m.quote,
+            points: 0,
+            total: 0,
+            counts: Object.fromEntries(ORDEM_MEDALHAS.map((medalha) => [medalha, 0])),
+            conquests: [],
+          });
+        }
+
+        const aluno = grupos.get(chave);
+        aluno.points += PONTOS[m.medal];
+        aluno.total += 1;
+        aluno.counts[m.medal] += 1;
+        aluno.conquests.push(`${m.medal}${m.olympiad ? ` — ${m.olympiad}` : ""}`);
+        if (!aluno.photo && m.photo) aluno.photo = m.photo;
+        if (!aluno.quote && m.quote) aluno.quote = m.quote;
+      });
+
+    return [...grupos.values()]
+      .sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        for (const medalha of ORDEM_MEDALHAS) {
+          if (b.counts[medalha] !== a.counts[medalha]) return b.counts[medalha] - a.counts[medalha];
+        }
+        return a.name.localeCompare(b.name, "pt-BR");
+      })
+      .slice(0, 3);
+  }, [medalhistas, year]);
 
   return (
     <div className="pt-16 lg:pt-20">
-      {/* Hero */}
       <section className="relative py-16 lg:py-24 bg-[hsl(var(--navy))] overflow-hidden">
-        <div className="absolute inset-0 opacity-15">
-          <img src="https://images.unsplash.com/photo-1523580494853-5066c0c5e4a7?w=1600&h=600&fit=crop" alt="" className="w-full h-full object-cover" />
-        </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-8 items-center">
             <div className="text-white">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/20 border border-amber-300/50 text-amber-200 text-xs font-semibold uppercase tracking-widest mb-4">
                 <Crown className="w-4 h-4" /> Hall da Fama OlimpIFP2
               </span>
-              <h1 className="font-heading font-extrabold" style={{ fontSize: "clamp(2.25rem, 5vw, 4rem)" }}>
-                DESTAQUES ANUAIS
-              </h1>
-              <p className="mt-3 text-amber-200 text-lg font-semibold">Reconhecendo trajetórias que inspiram.</p>
+              <h1 className="font-heading font-extrabold" style={{ fontSize: "clamp(2.25rem, 5vw, 4rem)" }}>DESTAQUES ANUAIS</h1>
+              <p className="mt-3 text-amber-200 text-lg font-semibold">Ranking calculado a partir das conquistas cadastradas.</p>
               <p className="mt-4 text-white/60 leading-relaxed max-w-xl">
-                A cada ano letivo, três estudantes se destacam pelo número de medalhas e pela dedicação às olimpíadas
-                do conhecimento. Conheça quem faz a história do OlimpIFP2.
+                A classificação considera: Diamante 30 pontos, Ouro 12, Prata 3, Bronze 1, Honra ao Mérito 0,75 e Menção Honrosa 0,50.
               </p>
             </div>
             <div className="flex justify-center lg:justify-end gap-4">
               {rankColors.map((r, i) => {
                 const Icon = r.icon;
-                return (
-                  <div key={i} className="text-center">
-                    <div className={`w-20 h-20 rounded-full ${r.bg} flex items-center justify-center shadow-xl ring-4 ring-white/10`}>
-                      <Icon className="w-10 h-10 text-white" strokeWidth={2.5} />
-                    </div>
-                    <p className="mt-2 text-white/80 text-xs font-semibold uppercase tracking-wider">{r.label}</p>
-                  </div>
-                );
+                return <div key={i} className="text-center"><div className={`w-20 h-20 rounded-full ${r.bg} flex items-center justify-center shadow-xl ring-4 ring-white/10`}><Icon className="w-10 h-10 text-white" strokeWidth={2.5} /></div><p className="mt-2 text-white/80 text-xs font-semibold uppercase tracking-wider">{r.label}</p></div>;
               })}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Filter */}
       <section className="py-8 bg-amber-50/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
             <div className="flex items-center gap-3 bg-white rounded-xl border-2 border-amber-100 px-4 py-3 shadow-sm">
               <Calendar className="w-5 h-5 text-amber-600" />
-              <select
-                value={year}
-                onChange={(e) => setYear(e.target.value)}
-                className="text-sm font-semibold text-slate-900 bg-transparent focus:outline-none"
-              >
-                <option>2026</option>
-                <option>2025</option>
-                <option>2024</option>
+              <select value={year} onChange={(e) => setYear(e.target.value)} className="text-sm font-semibold text-slate-900 bg-transparent focus:outline-none" disabled={!anos.length}>
+                {!anos.length && <option value="">Sem anos cadastrados</option>}
+                {anos.map((ano) => <option key={ano} value={ano}>{ano}</option>)}
               </select>
             </div>
             <div className="flex-1 bg-white border-2 border-amber-100 rounded-xl px-5 py-3 text-sm text-slate-600 flex items-center gap-2">
               <Trophy className="w-4 h-4 text-amber-600 shrink-0" />
-              A premiação é realizada em cerimônia oficial ao final de cada ano letivo.
+              O ranking é atualizado automaticamente conforme novas conquistas são cadastradas.
             </div>
           </div>
         </div>
       </section>
 
-      {/* Highlight cards */}
       <section className="pb-16 lg:pb-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 pt-10">
-          {ANNUAL_HIGHLIGHTS.map((h, i) => {
-            const rank = rankColors[i] || rankColors[0];
+          {loading && <div className="text-center py-12 text-slate-500">Calculando destaques...</div>}
+          {!loading && error && <div className="text-center py-12 text-red-600">{error}</div>}
+          {!loading && !error && ranking.length === 0 && <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 text-slate-500">Nenhuma conquista válida cadastrada para {year || "este ano"}.</div>}
+
+          {ranking.map((h, i) => {
+            const rank = rankColors[i];
             const RankIcon = rank.icon;
-
             return (
-              <article
-                key={i}
-                className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:shadow-amber-100 transition-all overflow-hidden grid md:grid-cols-12 border-l-4 border-l-amber-500"
-              >
-                {/* Sidebar */}
+              <article key={`${h.name}-${h.course}-${i}`} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg hover:shadow-amber-100 transition-all overflow-hidden grid md:grid-cols-12 border-l-4 border-l-amber-500">
                 <div className="md:col-span-2 bg-[hsl(var(--navy))] p-6 flex md:flex-col items-center justify-center gap-4 text-center">
-                  <div className={`w-16 h-16 rounded-full ${rank.bg} flex items-center justify-center text-white shadow-lg ring-4 ring-white/20`}>
-                    <RankIcon className="w-8 h-8" strokeWidth={2.5} />
-                  </div>
-                  <div>
-                    <p className="text-amber-300 text-[10px] font-bold uppercase tracking-widest">
-                      Destaque do ano
-                    </p>
-                    <p className="text-white font-heading font-bold text-lg">{h.year}</p>
-                  </div>
-                  <div className="hidden md:flex items-center justify-center w-10 h-10 rounded-full bg-amber-400/20 border border-amber-300/40">
-                    <Trophy className="w-5 h-5 text-amber-300" />
-                  </div>
+                  <div className={`w-16 h-16 rounded-full ${rank.bg} flex items-center justify-center text-white shadow-lg ring-4 ring-white/20`}><RankIcon className="w-8 h-8" strokeWidth={2.5} /></div>
+                  <div><p className="text-amber-300 text-[10px] font-bold uppercase tracking-widest">{rank.label}</p><p className="text-white font-heading font-bold text-lg">{year}</p></div>
                 </div>
 
-                {/* Photo */}
-                <div className="md:col-span-3 bg-slate-100">
-                  <img
-                    src={h.photo}
-                    alt={h.name}
-                    className="w-full h-full max-h-[320px] object-cover"
-                  />
+                <div className="md:col-span-3 bg-slate-100 min-h-[240px]">
+                  {h.photo ? <img src={h.photo} alt={h.name} className="w-full h-full max-h-[360px] object-cover" /> : <div className="w-full h-full min-h-[240px] flex items-center justify-center text-slate-400"><Medal className="w-16 h-16" /></div>}
                 </div>
 
-                {/* Info */}
                 <div className="md:col-span-7 p-6 lg:p-8">
-                  <h3 className="font-heading font-extrabold text-xl text-slate-900">
-                    {h.name}
-                  </h3>
-                  <p className="text-sm text-slate-500">{h.course}</p>
+                  <h3 className="font-heading font-extrabold text-xl text-slate-900">{h.name}</h3>
+                  {h.course && <p className="text-sm text-slate-500">{h.course}</p>}
+                  <div className="mt-2 inline-flex px-3 py-1 rounded-full bg-[hsl(var(--navy))] text-white text-sm font-bold">{h.points.toLocaleString("pt-BR")} pontos</div>
 
-                  {/* Medal counts */}
-                  <div className="mt-5 grid grid-cols-4 gap-3">
-                    {Object.entries(h.counts).map(([key, count]) => {
-                      const colors = medalColors[key] || medalColors.merito;
-                      return (
-                        <div key={key} className={`text-center ${colors.light} rounded-xl p-3 border border-white`}>
-                          <div className={`w-9 h-9 mx-auto rounded-full ${colors.bg} flex items-center justify-center mb-1.5 shadow-sm`}>
-                            <Medal className="w-5 h-5 text-white" />
-                          </div>
-                          <div className={`font-heading font-extrabold text-lg ${colors.text}`}>
-                            {count}
-                          </div>
-                          <div className="text-[10px] text-slate-500 capitalize font-semibold">
-                            {key}
-                          </div>
-                        </div>
-                      );
+                  <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {ORDEM_MEDALHAS.filter((medalha) => h.counts[medalha] > 0).map((medalha) => {
+                      const colors = medalColors[medalha];
+                      return <div key={medalha} className={`text-center ${colors.light} rounded-xl p-3 border border-white`}><div className={`w-9 h-9 mx-auto rounded-full ${colors.bg} flex items-center justify-center mb-1.5 shadow-sm`}><Medal className="w-5 h-5 text-white" /></div><div className={`font-heading font-extrabold text-lg ${colors.text}`}>{h.counts[medalha]}</div><div className="text-[10px] text-slate-500 font-semibold">{medalha}</div></div>;
                     })}
                   </div>
 
-                  <div className="mt-3 text-center text-sm font-bold text-white bg-[hsl(var(--navy))] rounded-lg py-2 border-l-4 border-amber-400">
-                    TOTAL: {h.total} CONQUISTAS
-                  </div>
-
-                  {/* Conquistas — todas visíveis */}
-                  <div className="mt-5">
-                    <h4 className="font-heading font-semibold text-sm text-slate-900 mb-2 flex items-center gap-2">
-                      <Award className="w-4 h-4 text-amber-600" />
-                      Todas as conquistas ({h.conquests.length}):
-                    </h4>
-                    <ul className="space-y-1.5">
-                      {h.conquests.map((c, j) => (
-                        <li key={j} className="flex items-center gap-2 text-sm text-slate-600">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                          {c}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Quote */}
-                  <div className="mt-5 bg-amber-50 rounded-xl p-4 border-l-4 border-amber-400">
-                    <Quote className="w-5 h-5 text-amber-300 mb-1" />
-                    <p className="text-sm italic text-slate-700">"{h.quote}"</p>
-                    <p className="mt-2 text-xs font-semibold text-amber-700">— {h.name}</p>
-                  </div>
-
-                  <Link
-                    to="/noticias"
-                    className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors group"
-                  >
-                    Ler notícias relacionadas
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                  <div className="mt-3 text-center text-sm font-bold text-white bg-[hsl(var(--navy))] rounded-lg py-2 border-l-4 border-amber-400">TOTAL: {h.total} CONQUISTAS</div>
+                  <div className="mt-5"><h4 className="font-heading font-semibold text-sm text-slate-900 mb-2 flex items-center gap-2"><Award className="w-4 h-4 text-amber-600" />Todas as conquistas ({h.conquests.length}):</h4><ul className="space-y-1.5">{h.conquests.map((c, j) => <li key={j} className="flex items-center gap-2 text-sm text-slate-600"><span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />{c}</li>)}</ul></div>
+                  {h.quote && <div className="mt-5 bg-amber-50 rounded-xl p-4 border-l-4 border-amber-400"><p className="text-sm italic text-slate-700">“{h.quote}”</p></div>}
+                  <Link to="/noticias" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors group">Ler notícias relacionadas <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></Link>
                 </div>
               </article>
             );
           })}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-12 bg-[hsl(var(--navy))] border-t-4 border-amber-500">
-        <div className="max-w-4xl mx-auto px-4 text-center text-white">
-          <div className="w-14 h-14 rounded-2xl bg-amber-400/20 border border-amber-300/40 flex items-center justify-center mx-auto mb-4">
-            <Trophy className="w-7 h-7 text-amber-300" />
-          </div>
-          <h3 className="font-heading font-bold text-xl sm:text-2xl mb-4">
-            Fique por dentro de todas as histórias!
-          </h3>
-          <Link
-            to="/noticias"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full gold-gradient text-white font-semibold shadow-lg shadow-amber-500/20"
-          >
-            Ir para a página de notícias
-            <ArrowRight className="w-5 h-5" />
-          </Link>
         </div>
       </section>
     </div>

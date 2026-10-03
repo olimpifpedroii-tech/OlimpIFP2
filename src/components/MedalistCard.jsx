@@ -33,6 +33,12 @@ const medalStyles = {
     text: "text-emerald-700",
     icon: Award,
   },
+  "Menção Honrosa": {
+    ring: "bg-teal-500",
+    label: "bg-teal-100 text-teal-800 border-teal-300",
+    text: "text-teal-700",
+    icon: Award,
+  },
 };
 
 // Estilo padrão quando o medalhista só tem troféu (sem medalha)

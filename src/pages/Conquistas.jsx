@@ -4,7 +4,6 @@ import {
   Trophy, Search, ArrowRight, Star, Award, HelpCircle, Megaphone, Crown,
   Calculator, Atom, FlaskConical, Dna, Code, BookOpen, Landmark, Lightbulb,
 } from "lucide-react";
-import { MEDALISTS, MEDAL_TYPES, STATS } from "@/lib/siteData";
 import MedalistCard from "@/components/MedalistCard";
 import { useApiPaginado } from "@/hooks/use-api-paginado";
 import { medalhistas as medalhistasApi } from "@/lib/api";
@@ -16,10 +15,9 @@ const howItWorks = [
   { icon: Award, title: "Celebre", text: "Suas conquistas são registradas e celebradas.", color: "bg-orange-100 text-orange-700" },
 ];
 
-const recentHighlights = [
-  { name: "Ana Beatriz Silva", medal: "Ouro - OBMEP 2024", year: "2024", photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" },
-  { name: "Pedro Henrique Alves", medal: "Ouro - OBM 2024", year: "2024", photo: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop" },
-  { name: "Mariana Rocha Lima", medal: "Prata - OBQ 2024", year: "2024", photo: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop" },
+const MEDAL_TYPES = [
+  "Todas", "Diamante", "Ouro", "Prata", "Bronze",
+  "Honra ao Mérito", "Menção Honrosa",
 ];
 
 const knowledgeAreas = [
@@ -40,8 +38,6 @@ const medalBadgeColors = {
   Bronze: "bg-orange-100 text-orange-800 border-orange-300",
   "Honra ao Mérito": "bg-emerald-100 text-emerald-800 border-emerald-300",
   "Menção Honrosa": "bg-teal-100 text-teal-800 border-teal-300",
-  Classificado: "bg-blue-100 text-blue-800 border-blue-300",
-  Participação: "bg-violet-100 text-violet-800 border-violet-300",
 };
 
 const OLYMPIAD_AREA = {
@@ -87,9 +83,24 @@ export default function Conquistas() {
     hasMore,
     total,
     loadMore,
-  } = useApiPaginado((skip, limit) => medalhistasApi.listPaginado(skip, limit), 9, MEDALISTS);
+  } = useApiPaginado(
+    (skip, limit) => medalhistasApi.listPaginado(skip, limit),
+    9,
+    []
+  );
 
   const siglasDisponiveis = useMemo(() => getSiglasDisponiveis(medalhistas), [medalhistas]);
+
+  const recentHighlights = useMemo(() =>
+    [...medalhistas]
+      .sort((a, b) => {
+        const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return db - da;
+      })
+      .slice(0, 3),
+    [medalhistas]
+  );
 
   const filtered = useMemo(() => {
     let lista = medalhistas.filter((m) => {
@@ -309,27 +320,6 @@ export default function Conquistas() {
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                 <h3 className="font-heading font-bold text-slate-900 mb-4 flex items-center gap-2">
                   <span className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
-                    <Trophy className="w-4 h-4 text-amber-600" />
-                  </span>
-                  Nossos números
-                </h3>
-                <div className="grid grid-cols-2 gap-3">
-                  {STATS.map((s, i) => {
-                    const bgColors = ["bg-amber-50", "bg-yellow-50", "bg-orange-50", "bg-rose-50"];
-                    const textColors = ["text-amber-700", "text-yellow-700", "text-orange-700", "text-rose-700"];
-                    return (
-                      <div key={s.label} className={`${bgColors[i % 4]} rounded-xl p-3 text-center border border-white`}>
-                        <div className={`font-heading font-extrabold text-xl ${textColors[i % 4]}`}>{s.value}</div>
-                        <div className="text-[11px] text-slate-500 leading-tight mt-0.5">{s.label}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                <h3 className="font-heading font-bold text-slate-900 mb-4 flex items-center gap-2">
-                  <span className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
                     <Star className="w-4 h-4 text-amber-600" />
                   </span>
                   Destaques recentes
@@ -340,9 +330,9 @@ export default function Conquistas() {
                       <img src={h.photo} alt={h.name} className="w-11 h-11 rounded-full object-cover ring-2 ring-amber-200" />
                       <div className="min-w-0">
                         <p className="font-semibold text-sm text-slate-900 truncate">{h.name}</p>
-                        <p className="text-xs text-amber-700">{h.medal}</p>
+                        <p className="text-xs text-amber-700">{h.medal}{h.olympiad ? ` - ${h.olympiad}` : ""}</p>
                       </div>
-                      <span className="ml-auto text-xs font-bold text-amber-600">{h.year}</span>
+                      <span className="ml-auto text-xs font-bold text-amber-600">{getAno(h)}</span>
                     </div>
                   ))}
                 </div>

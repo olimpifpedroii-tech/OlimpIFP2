@@ -12,12 +12,7 @@ export const NAV_LINKS = [
   { label: "Contato", path: "/contato" },
 ];
 
-export const STATS = [
-  { icon: "Trophy", value: "150+", label: "Medalhas conquistadas" },
-  { icon: "Users", value: "80+", label: "Estudantes premiados" },
-  { icon: "Medal", value: "25+", label: "Olimpíadas participadas" },
-  { icon: "Layers", value: "6", label: "Áreas do conhecimento" },
-];
+
 
 export const PILLARS = [
   { icon: "Award", title: "Excelência", text: "Buscamos sempre nos superar." },
@@ -53,14 +48,7 @@ export const OLYMPIADS = [
   { name: "OBI Jr", area: "Tecnologia", level: "Do 6º ao 9º ano", desc: "Modalidade de iniciantes da OBI.", medal: "Prata" },
 ];
 
-export const MEDALISTS = [
-  { name: "Ana Beatriz Silva", medal: "Ouro", olympiad: "OBMEP 2024", course: "3º ano - Informática", quote: "Cada problema resolvido é um passo a mais rumo à conquista.", photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop" },
-  { name: "Lucas Martins Oliveira", medal: "Prata", olympiad: "OBI 2024", course: "2º ano - Informática", quote: "A lógica me ensinou que todo desafio tem um caminho.", photo: "https://images.unsplash.com/photo-1500648766835-8583f6785748?w=400&h=400&fit=crop" },
-  { name: "Júlia Fernandes Costa", medal: "Bronze", olympiad: "ONC 2024", course: "3º ano - Agropecuária", quote: "A ciência está em tudo, basta saber onde olhar.", photo: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop" },
-  { name: "Pedro Henrique Alves", medal: "Ouro", olympiad: "OBM 2024", course: "1º ano - Informática", quote: "A matemática é a linguagem do universo.", photo: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=400&h=400&fit=crop" },
-  { name: "Mariana Rocha Lima", medal: "Prata", olympiad: "OBQ 2024", course: "2º ano - Agropecuária", quote: "Cada reação química me lembra que tudo se transforma.", photo: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&fit=crop" },
-  { name: "Gabriel Souza Mendes", medal: "Ouro", olympiad: "OBNE 2024", course: "3º ano - Informática", quote: "Empreender é transformar ideias em soluções reais.", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop" },
-];
+
 
 export const NEWS = [
   { id: 1, date: "12 MAI 2025", category: "Premiações", title: "Estudantes do IFPI Campus Pedro II conquistam 18 medalhas na OBMEP 2024", summary: "Resultado histórico para o campus com 6 ouros, 7 pratas, 5 bronzes e menções honrosas.", image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f3?w=600&h=400&fit=crop", views: 1240, readTime: "4 min" },
@@ -86,28 +74,6 @@ export const GALLERY_CATEGORIES = [
   "Todos", "Premiações", "Aplicações", "Aulas e Oficinas", "Palestras", "Visitas e Passeios", "Equipe e Reuniões", "Bastidores",
 ];
 
-export const ANNUAL_HIGHLIGHTS = [
-  {
-    rank: "1º", name: "Ana Beatriz Silva", course: "3º ano • Técnico em Informática", year: 2026,
-    photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=500&h=600&fit=crop",
-    counts: { ouro: 4, prata: 2, bronze: 1, merito: 3 }, total: 10,
-    conquests: ["Ouro - OBMEP 2024", "Ouro - OBI 2024", "Ouro - OBM 2024", "Ouro - OBNE 2024", "Prata - ONC 2024"],
-    quote: "O OlimpIFP2 me mostrou que o conhecimento é a maior medalha que podemos levar para a vida.",
-  },
-  {
-    rank: "2º", name: "Pedro Henrique Alves", course: "1º ano • Técnico em Informática", year: 2026,
-    photo: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=500&h=600&fit=crop",
-    counts: { ouro: 3, prata: 3, bronze: 2, merito: 1 }, total: 9,
-    conquests: ["Ouro - OBM 2024", "Ouro - OBMEP 2024", "Ouro - OBA 2024", "Prata - OBI 2024", "Prata - ONC 2024"],
-    quote: "Cada olimpíada é uma nova chance de descobrir do que somos capazes.",
-  },
-  {
-    rank: "3º", name: "Mariana Rocha Lima", course: "2º ano • Agropecuária", year: 2026,
-    photo: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=500&h=600&fit=crop",
-    counts: { ouro: 2, prata: 2, bronze: 3, merito: 1 }, total: 8,
-    conquests: ["Ouro - OBQ 2024", "Ouro - OBB 2024", "Prata - ONC 2024", "Bronze - OBF 2024", "Bronze - OBMEP 2024"],
-    quote: "A dedicação transforma desafios em conquistas que ficam para sempre.",
-  },
-];
 
-export const MEDAL_TYPES = ["Todas", "Ouro", "Prata", "Bronze", "Honra ao Mérito", "Classificado", "Participação"];
+
+export const MEDAL_TYPES = ["Todas", "Ouro", "Prata", "Bronze", "Honra ao Mérito", "Menção Honrosa"];
