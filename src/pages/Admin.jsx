@@ -37,11 +37,11 @@ const inputCls = "w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm 
 
 const MEDALHAS_MEDALHISTA = [
   "Diamante", "Ouro", "Prata", "Bronze",
-  "Honra ao Mérito", "Classificado", "Participação",
+  "Honra ao Mérito", "Menção Honrosa", "Classificado", "Participação",
 ];
 
 const MEDALHAS_OLIMPIADA = [
-  "Diamante", "Ouro", "Prata", "Bronze", "Honra",
+  "Diamante", "Ouro", "Prata", "Bronze", "Honra ao Mérito", "Menção Honrosa",
 ];
 
 /* ============ HELPERS ============ */

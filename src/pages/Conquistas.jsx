@@ -34,10 +34,12 @@ const knowledgeAreas = [
 ];
 
 const medalBadgeColors = {
+  Diamante: "bg-cyan-100 text-cyan-800 border-cyan-300",
   Ouro: "bg-amber-100 text-amber-800 border-amber-300",
   Prata: "bg-slate-100 text-slate-700 border-slate-300",
   Bronze: "bg-orange-100 text-orange-800 border-orange-300",
   "Honra ao Mérito": "bg-emerald-100 text-emerald-800 border-emerald-300",
+  "Menção Honrosa": "bg-teal-100 text-teal-800 border-teal-300",
   Classificado: "bg-blue-100 text-blue-800 border-blue-300",
   Participação: "bg-violet-100 text-violet-800 border-violet-300",
 };
