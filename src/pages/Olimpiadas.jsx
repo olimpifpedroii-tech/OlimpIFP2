@@ -4,7 +4,7 @@ import {
   BookOpen, Users, Trophy, ExternalLink, ChevronRight,
   Calculator, Leaf, Code, Languages, Landmark, Rocket, Layers, X, Award, Gem,
 } from "lucide-react";
-import { OLYMPIADS, OLYMPIAD_AREAS } from "@/lib/siteData";
+import { OLYMPIAD_AREAS } from "@/lib/siteData";
 import { useApiData } from "@/hooks/use-api-data";
 import { olimpiadas as olimpiadasApi } from "@/lib/api";
 
@@ -46,7 +46,10 @@ export default function Olimpiadas() {
   const [area, setArea] = useState("Todas");
   const [modal, setModal] = useState(null);
 
-  const { data: olimpiadas, loading } = useApiData(() => olimpiadasApi.list(), OLYMPIADS);
+  const { data: olimpiadas, loading } = useApiData(
+    () => olimpiadasApi.list(),
+    []
+  );
 
   const grouped = (area === "Todas" ? olimpiadas : olimpiadas.filter((o) => o.area === area))
     .reduce((acc, o) => { (acc[o.area] = acc[o.area] || []).push(o); return acc; }, {});
@@ -145,8 +148,30 @@ export default function Olimpiadas() {
                         </div>
                         <ExternalLink className="w-4 h-4 text-gray-300 group-hover:opacity-100 transition" style={{ color: theme.solid }} />
                       </div>
-                      <h3 className="font-extrabold text-lg mb-2" style={{ color: theme.dark }}>{o.name}</h3>
-                      <p className="text-xs text-gray-500 mb-4 line-clamp-2">{o.desc}</p>
+                      <h3
+  className="font-extrabold text-lg mb-2"
+  style={{ color: theme.dark }}
+>
+  {o.name}
+</h3>
+
+{o.scope && (
+  <span
+    className="inline-flex items-center text-[10px] font-bold uppercase px-2.5 py-1 rounded-full mb-3"
+    style={{
+      backgroundColor: theme.light,
+      color: theme.dark,
+    }}
+  >
+    {o.scope}
+  </span>
+)}
+
+<p className="text-xs text-gray-500 mb-4 line-clamp-2">
+  {o.desc}
+</p>
+
+
 
                       {/* MÚLTIPLAS MEDALHAS */}
                       {medals.length > 0 && (
@@ -219,6 +244,31 @@ export default function Olimpiadas() {
                   <h4 className="text-[9px] font-black uppercase mb-1" style={{ color: modal.theme.solid }}>Público Alvo</h4>
                   <p className="text-sm font-bold italic" style={{ color: modal.theme.dark }}>{modal.level}</p>
                 </div>
+
+
+                {modal.scope && (
+  <div
+    className="p-4 rounded-xl border-l-4"
+    style={{
+      backgroundColor: modal.theme.light,
+      borderColor: modal.theme.border,
+    }}
+  >
+    <h4
+      className="text-[9px] font-black uppercase mb-1"
+      style={{ color: modal.theme.solid }}
+    >
+      Abrangência
+    </h4>
+
+    <p
+      className="text-sm font-bold"
+      style={{ color: modal.theme.dark }}
+    >
+      {modal.scope}
+    </p>
+  </div>
+)}
 
                 {/* MÚLTIPLAS MEDALHAS */}
                 {medals.length > 0 && (

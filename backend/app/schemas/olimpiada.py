@@ -7,6 +7,7 @@ class OlimpiadaBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     area: str = Field(..., max_length=100)
     level: str = Field(..., max_length=100)
+    scope: str | None = Field(None, max_length=50)
     desc: str = ""
     medals: list[str] = []
     site_url: str = ""
@@ -31,6 +32,7 @@ class OlimpiadaUpdate(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=100)
     area: str | None = Field(None, max_length=100)
     level: str | None = Field(None, max_length=100)
+    scope: str | None = Field(None, max_length=50)
     desc: str | None = None
     medals: list[str] | None = None
     site_url: str | None = None

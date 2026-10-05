@@ -3,16 +3,21 @@ import { Link } from "react-router-dom";
 import { Trophy, Medal, Award, ArrowRight, Calendar, Crown } from "lucide-react";
 import { medalhistas as medalhistasApi } from "@/lib/api";
 
-const PONTOS = {
-  Diamante: 30,
-  Ouro: 12,
-  Prata: 3,
-  Bronze: 1,
-  "Honra ao Mérito": 0.75,
-  "Menção Honrosa": 0.5,
-};
 
-const ORDEM_MEDALHAS = ["Diamante", "Ouro", "Prata", "Bronze", "Honra ao Mérito", "Menção Honrosa"];
+const ORDEM_MEDALHAS = [
+  "Diamante",
+  "Ouro",
+  "Prata",
+  "Bronze",
+  "Honra ao Mérito",
+  "Menção Honrosa",
+];
+
+const TODAS_PREMIACOES = [
+  ...ORDEM_MEDALHAS,
+  "Outra Premiação",
+];
+
 
 const medalColors = {
   Diamante: { bg: "bg-cyan-500", text: "text-cyan-900", light: "bg-cyan-100" },
@@ -21,6 +26,7 @@ const medalColors = {
   Bronze: { bg: "bg-orange-500", text: "text-orange-900", light: "bg-orange-100" },
   "Honra ao Mérito": { bg: "bg-emerald-500", text: "text-emerald-900", light: "bg-emerald-100" },
   "Menção Honrosa": { bg: "bg-teal-500", text: "text-teal-900", light: "bg-teal-100" },
+  "Outra Premiação": { bg: "bg-violet-500", text: "text-violet-900", light: "bg-violet-100" },
 };
 
 const rankColors = [
@@ -65,46 +71,71 @@ export default function DestaquesAnuais() {
   }, [anos, year]);
 
   const ranking = useMemo(() => {
-    if (!year) return [];
-    const grupos = new Map();
+  if (!year) return [];
 
-    medalhistas
-      .filter((m) => getAno(m) === year && PONTOS[m.medal] !== undefined)
-      .forEach((m) => {
-        // Nome + curso evita misturar alunos homônimos da mesma edição.
-        const chave = `${normalizar(m.name)}|${normalizar(m.course)}`;
-        if (!grupos.has(chave)) {
-          grupos.set(chave, {
-            name: m.name,
-            course: m.course,
-            photo: m.photo,
-            quote: m.quote,
-            points: 0,
-            total: 0,
-            counts: Object.fromEntries(ORDEM_MEDALHAS.map((medalha) => [medalha, 0])),
-            conquests: [],
-          });
+  const grupos = new Map();
+
+  medalhistas
+    .filter(
+      (m) =>
+        getAno(m) === year &&
+        TODAS_PREMIACOES.includes(m.medal)
+    )
+    .forEach((m) => {
+      // O aluno é identificado somente pelo nome completo.
+      const chave = normalizar(m.name);
+
+      if (!grupos.has(chave)) {
+        grupos.set(chave, {
+          name: m.name,
+          course: m.course || "",
+          photo: m.photo || "",
+          quote: m.quote || "",
+          total: 0,
+          counts: Object.fromEntries(
+            TODAS_PREMIACOES.map((premiacao) => [premiacao, 0])
+          ),
+          conquests: [],
+        });
+      }
+
+      const aluno = grupos.get(chave);
+
+      // Toda conquista conta como 1, inclusive "Outra Premiação".
+      aluno.total += 1;
+      aluno.counts[m.medal] += 1;
+
+      aluno.conquests.push(
+        `${m.medal}${m.olympiad ? ` — ${m.olympiad}` : ""}`
+      );
+
+      // Se o primeiro registro não tiver esses dados,
+      // aproveita os dados de outro registro do mesmo aluno.
+      if (!aluno.course && m.course) aluno.course = m.course;
+      if (!aluno.photo && m.photo) aluno.photo = m.photo;
+      if (!aluno.quote && m.quote) aluno.quote = m.quote;
+    });
+
+  return [...grupos.values()]
+    .sort((a, b) => {
+      // 1º critério: quantidade total de conquistas.
+      if (b.total !== a.total) {
+        return b.total - a.total;
+      }
+
+      // 2º critério: hierarquia das medalhas.
+      // "Outra Premiação" não participa deste desempate.
+      for (const medalha of ORDEM_MEDALHAS) {
+        if (b.counts[medalha] !== a.counts[medalha]) {
+          return b.counts[medalha] - a.counts[medalha];
         }
+      }
 
-        const aluno = grupos.get(chave);
-        aluno.points += PONTOS[m.medal];
-        aluno.total += 1;
-        aluno.counts[m.medal] += 1;
-        aluno.conquests.push(`${m.medal}${m.olympiad ? ` — ${m.olympiad}` : ""}`);
-        if (!aluno.photo && m.photo) aluno.photo = m.photo;
-        if (!aluno.quote && m.quote) aluno.quote = m.quote;
-      });
-
-    return [...grupos.values()]
-      .sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
-        for (const medalha of ORDEM_MEDALHAS) {
-          if (b.counts[medalha] !== a.counts[medalha]) return b.counts[medalha] - a.counts[medalha];
-        }
-        return a.name.localeCompare(b.name, "pt-BR");
-      })
-      .slice(0, 3);
-  }, [medalhistas, year]);
+      // Se continuar completamente empatado, apenas estabiliza a ordem.
+      return a.name.localeCompare(b.name, "pt-BR");
+    })
+    .slice(0, 3);
+}, [medalhistas, year]);
 
   return (
     <div className="pt-16 lg:pt-20">
@@ -118,8 +149,10 @@ export default function DestaquesAnuais() {
               <h1 className="font-heading font-extrabold" style={{ fontSize: "clamp(2.25rem, 5vw, 4rem)" }}>DESTAQUES ANUAIS</h1>
               <p className="mt-3 text-amber-200 text-lg font-semibold">Ranking calculado a partir das conquistas cadastradas.</p>
               <p className="mt-4 text-white/60 leading-relaxed max-w-xl">
-                A classificação considera: Diamante 30 pontos, Ouro 12, Prata 3, Bronze 1, Honra ao Mérito 0,75 e Menção Honrosa 0,50.
-              </p>
+  A classificação considera primeiro a quantidade total de conquistas.
+  Em caso de empate, o desempate segue a hierarquia: Diamante, Ouro,
+  Prata, Bronze, Honra ao Mérito e Menção Honrosa.
+</p>
             </div>
             <div className="flex justify-center lg:justify-end gap-4">
               {rankColors.map((r, i) => {
@@ -172,10 +205,12 @@ export default function DestaquesAnuais() {
                 <div className="md:col-span-7 p-6 lg:p-8">
                   <h3 className="font-heading font-extrabold text-xl text-slate-900">{h.name}</h3>
                   {h.course && <p className="text-sm text-slate-500">{h.course}</p>}
-                  <div className="mt-2 inline-flex px-3 py-1 rounded-full bg-[hsl(var(--navy))] text-white text-sm font-bold">{h.points.toLocaleString("pt-BR")} pontos</div>
+                  <div className="mt-2 inline-flex px-3 py-1 rounded-full bg-[hsl(var(--navy))] text-white text-sm font-bold">
+  {h.total} {h.total === 1 ? "conquista" : "conquistas"}
+</div>
 
                   <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {ORDEM_MEDALHAS.filter((medalha) => h.counts[medalha] > 0).map((medalha) => {
+                    {TODAS_PREMIACOES.filter((medalha) => h.counts[medalha] > 0).map((medalha) => {
                       const colors = medalColors[medalha];
                       return <div key={medalha} className={`text-center ${colors.light} rounded-xl p-3 border border-white`}><div className={`w-9 h-9 mx-auto rounded-full ${colors.bg} flex items-center justify-center mb-1.5 shadow-sm`}><Medal className="w-5 h-5 text-white" /></div><div className={`font-heading font-extrabold text-lg ${colors.text}`}>{h.counts[medalha]}</div><div className="text-[10px] text-slate-500 font-semibold">{medalha}</div></div>;
                     })}

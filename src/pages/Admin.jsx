@@ -36,12 +36,25 @@ const inputCls = "w-full px-4 py-2.5 rounded-lg border border-slate-200 text-sm 
 // ─────────────────────────────────────────────────────
 
 const MEDALHAS_MEDALHISTA = [
-  "Diamante", "Ouro", "Prata", "Bronze",
-  "Honra ao Mérito", "Menção Honrosa",
+  "Diamante",
+  "Ouro",
+  "Prata",
+  "Bronze",
+  "Honra ao Mérito",
+  "Menção Honrosa",
+  "Outra Premiação",
 ];
 
 const MEDALHAS_OLIMPIADA = [
   "Diamante", "Ouro", "Prata", "Bronze", "Honra ao Mérito", "Menção Honrosa",
+];
+
+const ABRANGENCIAS_OLIMPIADA = [
+  "Regional",
+  "Estadual",
+  "Nacional",
+  "Internacional",
+  "Institucional",
 ];
 
 /* ============ HELPERS ============ */
@@ -731,7 +744,7 @@ function MedalhistasAdmin({ items, setItems }) {
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Olimpíada"><input className={inputCls} value={form.olympiad} onChange={(e) => setForm({ ...form, olympiad: e.target.value })} placeholder="OBMEP 2024" /></Field>
-            <Field label="Curso / Ano"><input className={inputCls} value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} placeholder="3º ano - Informática" /></Field>
+            <Field label="Curso / Ano (opcional)"><input className={inputCls} value={form.course} onChange={(e) => setForm({ ...form, course: e.target.value })} placeholder="3º ano - Informática" /></Field>
           </div>
 
           {/* ─── TROFÉUS ─── */}
@@ -843,7 +856,7 @@ function MedalhistasAdmin({ items, setItems }) {
 
 /* ============ OLIMPÍADAS ============ */
 function OlimpiadasAdmin({ items, setItems }) {
-  const formVazio = { name: "", area: "Matemática", level: "", desc: "", medals: [], site_url: "" };
+  const formVazio = { name: "", area: "Matemática", level: "", scope: "", desc: "", medals: [], site_url: "" };
   const [form, setForm] = useState(formVazio);
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -882,6 +895,7 @@ function OlimpiadasAdmin({ items, setItems }) {
       name: o.name || "",
       area: o.area || "Matemática",
       level: o.level || "",
+      scope: o.scope || "",
       desc: o.desc || "",
       medals: Array.isArray(o.medals) ? o.medals : [],
       site_url: o.site_url || "",
@@ -916,6 +930,21 @@ function OlimpiadasAdmin({ items, setItems }) {
             </Field>
             <Field label="Nível"><input className={inputCls} value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} placeholder="Ensino Médio" /></Field>
           </div>
+           <Field label="Abrangência">
+            <select
+              className={inputCls}
+              value={form.scope}
+              onChange={(e) => setForm({ ...form, scope: e.target.value })}
+            >
+              <option value="">— Selecione —</option>
+
+              {ABRANGENCIAS_OLIMPIADA.map((abrangencia) => (
+                <option key={abrangencia} value={abrangencia}>
+                  {abrangencia}
+                </option>
+              ))}
+            </select>
+          </Field>
           <Field label="Descrição"><textarea rows={3} className={`${inputCls} resize-none`} value={form.desc} onChange={(e) => setForm({ ...form, desc: e.target.value })} placeholder="Descrição da olimpíada" /></Field>
 
           {/* ─── MEDALHAS (MÚLTIPLA ESCOLHA) ─── */}
