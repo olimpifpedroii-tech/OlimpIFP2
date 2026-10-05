@@ -12,7 +12,6 @@ class Olimpiada(Base):
     name: Mapped[str] = mapped_column(String(100))
     area: Mapped[str] = mapped_column(String(100))
     level: Mapped[str] = mapped_column(String(100))
-    scope: Mapped[str | None] = mapped_column(String(50), nullable=True)
     desc: Mapped[str] = mapped_column(Text, default="")
     medals: Mapped[str] = mapped_column(Text, default="[]")
     site_url: Mapped[str] = mapped_column(Text, default="")

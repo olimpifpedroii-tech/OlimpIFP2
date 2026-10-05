@@ -16,8 +16,14 @@ const howItWorks = [
 ];
 
 const MEDAL_TYPES = [
-  "Todas", "Diamante", "Ouro", "Prata", "Bronze",
-  "Honra ao Mérito", "Menção Honrosa",
+  "Todas",
+  "Diamante",
+  "Ouro",
+  "Prata",
+  "Bronze",
+  "Honra ao Mérito",
+  "Menção Honrosa",
+  "Outra Premiação",
 ];
 
 const knowledgeAreas = [
@@ -38,6 +44,7 @@ const medalBadgeColors = {
   Bronze: "bg-orange-100 text-orange-800 border-orange-300",
   "Honra ao Mérito": "bg-emerald-100 text-emerald-800 border-emerald-300",
   "Menção Honrosa": "bg-teal-100 text-teal-800 border-teal-300",
+  "Outra Premiação": "bg-violet-100 text-violet-800 border-violet-300",
 };
 
 const OLYMPIAD_AREA = {

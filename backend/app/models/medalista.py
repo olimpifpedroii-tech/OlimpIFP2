@@ -17,6 +17,7 @@ class Medalista(Base):
     # ⚠️ NOVO: nomes dos troféus em JSON. Ex: ["Melhor da Escola", "Destaque"]
     trophies: Mapped[str] = mapped_column(Text, default="[]")
     olympiad: Mapped[str] = mapped_column(String(100))
+    scope: Mapped[str | None] = mapped_column(String(50), nullable=True)
     course: Mapped[str] = mapped_column(String(150))
     quote: Mapped[str] = mapped_column(Text, default="")
     photo: Mapped[str] = mapped_column(Text, default="")

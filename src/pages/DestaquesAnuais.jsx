@@ -106,8 +106,8 @@ export default function DestaquesAnuais() {
       aluno.counts[m.medal] += 1;
 
       aluno.conquests.push(
-        `${m.medal}${m.olympiad ? ` — ${m.olympiad}` : ""}`
-      );
+  `${m.medal}${m.olympiad ? ` — ${m.olympiad}` : ""}${m.scope ? ` — ${m.scope}` : ""}`
+);
 
       // Se o primeiro registro não tiver esses dados,
       // aproveita os dados de outro registro do mesmo aluno.

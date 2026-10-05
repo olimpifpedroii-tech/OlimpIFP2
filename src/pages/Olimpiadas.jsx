@@ -155,17 +155,7 @@ export default function Olimpiadas() {
   {o.name}
 </h3>
 
-{o.scope && (
-  <span
-    className="inline-flex items-center text-[10px] font-bold uppercase px-2.5 py-1 rounded-full mb-3"
-    style={{
-      backgroundColor: theme.light,
-      color: theme.dark,
-    }}
-  >
-    {o.scope}
-  </span>
-)}
+
 
 <p className="text-xs text-gray-500 mb-4 line-clamp-2">
   {o.desc}
@@ -246,29 +236,7 @@ export default function Olimpiadas() {
                 </div>
 
 
-                {modal.scope && (
-  <div
-    className="p-4 rounded-xl border-l-4"
-    style={{
-      backgroundColor: modal.theme.light,
-      borderColor: modal.theme.border,
-    }}
-  >
-    <h4
-      className="text-[9px] font-black uppercase mb-1"
-      style={{ color: modal.theme.solid }}
-    >
-      Abrangência
-    </h4>
-
-    <p
-      className="text-sm font-bold"
-      style={{ color: modal.theme.dark }}
-    >
-      {modal.scope}
-    </p>
-  </div>
-)}
+         
 
                 {/* MÚLTIPLAS MEDALHAS */}
                 {medals.length > 0 && (

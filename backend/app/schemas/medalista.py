@@ -9,6 +9,7 @@ class MedalistaBase(BaseModel):
     has_trophy: bool = False
     trophies: list[str] = []
     olympiad: str = Field(..., max_length=100)
+    scope: str | None = Field(None, max_length=50)
     course: str = Field("", max_length=150)
     quote: str = ""
     photo: str = ""

@@ -39,6 +39,12 @@ const medalStyles = {
     text: "text-teal-700",
     icon: Award,
   },
+  "Outra Premiação": {
+  ring: "bg-violet-500",
+  label: "bg-violet-100 text-violet-800 border-violet-300",
+  text: "text-violet-700",
+  icon: Award,
+},
 };
 
 // Estilo padrão quando o medalhista só tem troféu (sem medalha)
@@ -95,6 +101,12 @@ export default function MedalistCard({ medalist }) {
           <Icon className="w-4 h-4" />
           {temMedalha ? medalist.olympiad : `${medalist.olympiad} (Troféu)`}
         </div>
+
+        {medalist.scope && (
+  <span className="mt-2 inline-flex self-start px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+    {medalist.scope}
+  </span>
+)}
 
         {/* Troféus (se tiver) */}
         {trophies.length > 0 && (
