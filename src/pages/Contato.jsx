@@ -91,7 +91,7 @@ export default function Contato() {
         </div>
         <div className="relative min-h-[260px] lg:min-h-full bg-slate-200">
           <img
-            src="https://images.unsplash.com/photo-1523240795612-9a054b0146f9?w=900&h=700&fit=crop"
+            src="/images/contato.png"
             alt="Estudantes em evento"
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -114,7 +114,7 @@ export default function Contato() {
               <div className="flex flex-col items-center text-center">
                 <div className="w-28 h-28 rounded-full border-4 border-slate-100 bg-slate-100 flex items-center justify-center overflow-hidden mb-4 ring-4 ring-emerald-500/10">
                   <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop"
+                    src="/images/william.jpg"
                     alt="William Melo"
                     className="w-full h-full object-cover"
                   />
@@ -141,13 +141,13 @@ export default function Contato() {
                 <h2 className="font-heading font-bold text-lg text-slate-900">Fale conosco</h2>
               </div>
               <div className="space-y-5">
-                <ContactRow icon={Mail} title="E-mail" value="olimpifp2@ifpi.edu.br" sub="Resposta em até 48h" green={GREEN} />
-                <ContactRow icon={Phone} title="WhatsApp" value="(86) 9 9999-9999" sub="Seg a Sex, 8h às 12h" green={GREEN} />
+                <ContactRow icon={Mail} title="E-mail" value="olimpif.pedroii@gmail.com" sub="Resposta em até 48h" green={GREEN} />
+                <ContactRow icon={Phone} title="WhatsApp" value="(86) 9 9943-3837" sub="Seg a Sex, 8h às 12h" green={GREEN} />
                 <ContactRow icon={MapPin} title="Localização" value="IFPI – Campus Pedro II" sub="BR-230, Km 12 — Pedro II, PI" green={GREEN} />
 
                 <div className="pt-4 border-t border-slate-100">
                   <a
-                    href="mailto:olimpifp2@ifpi.edu.br"
+                    href="mailto:olimpif.pedroii@gmail.com"
                     className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white text-sm font-semibold transition-colors hover:brightness-110"
                     style={{ background: GREEN }}
                   >
@@ -253,7 +253,7 @@ export default function Contato() {
                 <MapPin className="w-5 h-5" style={{ color: GREEN }} /> Onde estamos
               </h3>
               <div className="rounded-xl overflow-hidden border border-slate-200 h-40 bg-slate-100 relative">
-                <img src="https://images.unsplash.com/photo-1524661135-423995f22d19?w=500&h=300&fit=crop" alt="Mapa" className="w-full h-full object-cover opacity-80" />
+                <img src="/images/mapa.png" alt="Mapa" className="w-full h-full object-cover opacity-80" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg" style={{ background: RED }}>
                     <MapPin className="w-5 h-5" />
@@ -323,7 +323,7 @@ export default function Contato() {
                 O OlimpIFP2 é mais que um projeto: é um movimento de valorização do conhecimento.
               </p>
               <div className="mt-4 rounded-xl overflow-hidden border border-white/10 flex-1 min-h-[140px]">
-                <img src="https://images.unsplash.com/photo-1523580494853-5066c0c5e4a7?w=500&h=350&fit=crop" alt="Equipe" className="w-full h-full object-cover" />
+                <img src="/images/ai.png" alt="Equipe" className="w-full h-full object-cover" />
               </div>
               <a href="/projeto" className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-white/90 hover:text-white">
                 Conheça o projeto <ArrowRight className="w-4 h-4" />

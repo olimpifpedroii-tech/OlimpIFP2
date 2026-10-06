@@ -26,10 +26,10 @@ export default function SiteHeader() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 shrink-0">
             <img
-              src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=120&h=120&fit=crop"
-              alt="Logo OlimpIFP2"
-              className="w-12 h-12 lg:w-14 lg:h-14 rounded-lg object-cover shadow-md ring-1 ring-white/20"
-            />
+  src="/images/Emblema.png"
+  alt="Logo OlimpIFP2"
+  className="w-16 h-16 lg:w-20 lg:h-20 object-contain"
+/>
             <div className="leading-tight">
               <div className="text-white font-heading font-extrabold text-lg tracking-tight">OlimpIFP2</div>
               <div className="text-white/60 text-[10px] uppercase tracking-widest hidden sm:block">IFPI • Campus Pedro II</div>

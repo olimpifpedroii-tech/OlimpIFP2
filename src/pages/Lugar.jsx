@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import {
   Users, Building2, Mountain, Trophy, BookOpen, Medal, ArrowRight,
   ExternalLink, GraduationCap, Heart, Gem, TreePalm, Landmark, MapPinned,
-  FlaskConical, Library, Laptop, Lightbulb, PlayCircle, Quote,
+  FlaskConical, Library, Laptop, Lightbulb, Quote,
 } from "lucide-react";
 
 const GREEN_IF = "#004d00";
@@ -79,7 +79,7 @@ export default function Lugar() {
       <section className="max-w-7xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
         <div className="md:col-span-4">
           <img
-            src="https://images.unsplash.com/photo-1523580494853-5066c0c5e4a7?w=500&h=400&fit=crop"
+            src="/images/estudantes.png"
             alt="Alunos"
             className="rounded-2xl shadow-lg w-full"
           />
@@ -147,15 +147,11 @@ export default function Lugar() {
           </div>
           <div className="md:col-span-5 relative group">
             <img
-              src="https://images.unsplash.com/photo-1562774053-8817958e864b?w=600&h=350&fit=crop"
+              src="/images/escola.jpg"
               alt="Campus"
               className="rounded-xl shadow-lg w-full h-[350px] object-cover"
             />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="bg-white/90 h-16 w-16 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition">
-                <PlayCircle className="w-8 h-8" style={{ color: GREEN_900 }} />
-              </div>
-            </div>
+           
           </div>
           <div className="md:col-span-3 bg-white p-6 rounded-xl shadow-sm border-t-4" style={{ borderColor: GREEN_700 }}>
             <h3 className="font-bold text-sm mb-2 uppercase">Conheça mais</h3>
@@ -163,7 +159,7 @@ export default function Lugar() {
               Acesse o site oficial do IFPI - Campus Pedro II e descubra tudo o que nosso campus oferece.
             </p>
             <a
-              href="#"
+              href="https://www.ifpi.edu.br/pedroii/o-campus/cursos"
               className="text-white text-[10px] px-4 py-2 rounded flex justify-between items-center hover:brightness-110 transition uppercase font-bold"
               style={{ backgroundColor: GREEN_900 }}
             >
@@ -178,13 +174,11 @@ export default function Lugar() {
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-8">
           <div className="md:col-span-4 order-2 md:order-1 relative">
             <img
-              src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=600&h=350&fit=crop"
+              src="/images/natureza.jpg"
               alt="Pedro II"
               className="rounded-xl shadow-lg w-full h-[350px] object-cover"
             />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <PlayCircle className="w-16 h-16 text-white/90 drop-shadow-lg" />
-            </div>
+            
           </div>
           <div className="md:col-span-5 order-1 md:order-2">
             <div className="flex items-center space-x-4 mb-4">

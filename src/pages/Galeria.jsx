@@ -126,7 +126,7 @@ export default function Galeria() {
       {/* Hero */}
       <section className="relative py-16 lg:py-24 bg-[hsl(var(--navy))] overflow-hidden">
         <div className="absolute inset-0 opacity-25">
-          <img src="https://images.unsplash.com/photo-1523580494853-5066c0c5e4a7?w=1600&h=600&fit=crop" alt="" className="w-full h-full object-cover" />
+          <img src="/images/foto.png" alt="" className="w-full h-full object-cover" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl">

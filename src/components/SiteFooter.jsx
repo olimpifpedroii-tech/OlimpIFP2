@@ -28,10 +28,10 @@ export default function SiteFooter() {
           <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-4">
               <img
-                src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=120&h=120&fit=crop"
-                alt="Logo OlimpIFP2"
-                className="w-12 h-12 rounded-lg object-cover ring-1 ring-white/20"
-              />
+  src="/images/Emblema.png"
+  alt="Logo OlimpIFP2"
+  className="w-16 h-16 lg:w-20 lg:h-20 object-contain"
+/>
               <div>
                 <div className="font-heading font-extrabold text-lg">OlimpIFP2</div>
                 <div className="text-white/50 text-xs uppercase tracking-widest">
@@ -74,10 +74,10 @@ export default function SiteFooter() {
             <div>
               <p className="text-xs uppercase tracking-wider text-white/40">Contato</p>
               <a
-                href="mailto:olimpifp2@ifpi.edu.br"
+                href="mailto:olimpif.pedroii@gmail.com"
                 className="text-sm font-semibold hover:text-white transition-colors"
               >
-                olimpifp2@ifpi.edu.br
+                olimpif.pedroii@gmail.com
               </a>
             </div>
           </div>

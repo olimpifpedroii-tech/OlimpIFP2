@@ -146,7 +146,7 @@ export default function Conquistas() {
       {/* Hero */}
       <section className="relative py-16 lg:py-24 bg-[hsl(var(--navy))] overflow-hidden">
         <div className="absolute inset-0 opacity-20">
-          <img src="https://images.unsplash.com/photo-1523580494853-5066c0c5e4a7?w=1600&h=600&fit=crop" alt="" className="w-full h-full object-cover" />
+          <img src="/images/b.png" alt="" className="w-full h-full object-cover" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-10 items-center">
@@ -163,7 +163,7 @@ export default function Conquistas() {
               </p>
             </div>
             <div className="relative rounded-3xl overflow-hidden shadow-2xl ring-4 ring-amber-400/40">
-              <img src="https://images.unsplash.com/photo-1523580494853-5066c0c5e4a7?w=700&h=450&fit=crop" alt="Medalhistas" className="w-full h-[300px] object-cover" />
+              <img src="/images/medalhas.png" alt="Medalhistas" className="w-full h-[300px] object-cover" />
               <div className="absolute top-4 right-4 bg-[hsl(var(--navy-deep))]/90 backdrop-blur-sm rounded-xl p-4 max-w-[200px] border border-amber-400/30">
                 <p className="text-white text-sm font-heading font-semibold text-balance">"Cada medalha tem uma história. Cada estudante deixa um legado."</p>
               </div>

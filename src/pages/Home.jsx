@@ -85,7 +85,7 @@ export default function Home() {
             <div className="hidden lg:block">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl ring-1 ring-white/10">
                 <img
-                  src="https://images.unsplash.com/photo-1523580494853-5066c0c5e4a7?w=800&h=1000&fit=crop"
+                  src="/images/medalhistas-home.png"
                   alt="Estudantes com medalhas"
                   className="w-full h-[560px] object-cover"
                 />
@@ -212,7 +212,7 @@ export default function Home() {
             <div className="relative">
               <div className="rounded-[2rem] overflow-hidden shadow-2xl ring-4 ring-amber-500/10">
                 <img
-                  src="https://images.unsplash.com/photo-1517486808906-6ca880c8c6c0?w=800&h=600&fit=crop"
+                  src="/images/biblioteca.png"
                   alt="Estudantes na biblioteca"
                   className="w-full h-[420px] lg:h-[500px] object-cover"
                 />
@@ -263,7 +263,7 @@ export default function Home() {
             </div>
             <div className="relative rounded-3xl overflow-hidden shadow-xl ring-4 ring-emerald-500/10">
               <img
-                src="https://images.unsplash.com/photo-1562774053-8817958e864b?w=800&h=500&fit=crop"
+                src="/images/amoifpi.jpg"
                 alt="IFPI Campus Pedro II"
                 className="w-full h-[320px] object-cover"
               />
@@ -277,12 +277,32 @@ export default function Home() {
           <h3 className="font-heading font-bold text-xl text-slate-900 text-center mb-6">Construímos Juntos</h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
-              { title: "Estudantes", text: "Protagonistas que transformam desafios em conquistas." },
-              { title: "Professores", text: "Orientam, inspiram e impulsionam novos talentos." },
-              { title: "Servidores", text: "Apoiam, organizam e fortalecem cada etapa do projeto." },
-              { title: "Colaboradores", text: "Parcerias que multiplicam o conhecimento." },
-              { title: "Todos Juntos", text: "Uma comunidade que deixa histórias e constrói legados." },
-            ].map((c, i) => {
+  {
+    title: "Estudantes",
+    text: "Protagonistas que transformam desafios em conquistas.",
+    img: "/images/estudantes.png",
+  },
+  {
+    title: "Professores",
+    text: "Orientam, inspiram e impulsionam novos talentos.",
+    img: "/images/professores.png",
+  },
+  {
+    title: "Servidores",
+    text: "Apoiam, organizam e fortalecem cada etapa do projeto.",
+    img: "/images/servidores.png",
+  },
+  {
+    title: "Colaboradores",
+    text: "Parcerias que multiplicam o conhecimento.",
+    img: "/images/colaboradores.png",
+  },
+  {
+    title: "Todos Juntos",
+    text: "Uma comunidade que deixa histórias e constrói legados.",
+    img: "/images/todos.png",
+  },
+].map((c, i) => {
               const color = builderColors[i % 5];
               return (
                 <div
@@ -291,10 +311,10 @@ export default function Home() {
                 >
                   <div className="aspect-[3/4] bg-slate-100">
                     <img
-                      src={`https://images.unsplash.com/photo-${["1523580494853-5066c0c5e4a7", "1523050854058-8df90110c9f3", "1517486808906-6ca880c8c6c0", "1523580845648-3d6s8c0c5e4a7", "1427504494785-3a9ca7044f45"][i]}?w=300&h=400&fit=crop`}
-                      alt={c.title}
-                      className="w-full h-full object-cover"
-                    />
+  src={c.img}
+  alt={c.title}
+  className="w-full h-full object-cover"
+/>
                   </div>
                   <div className="bg-[hsl(var(--navy))] p-3 text-center border-t-4 border-[hsl(var(--gold))]">
                     <p className={`font-heading font-bold text-xs uppercase tracking-wider mb-1 ${color.text}`}>

@@ -6,11 +6,11 @@ import { PILLARS } from "@/lib/siteData";
 const iconMap = { Award, Trophy, Users };
 
 const builders = [
-  { title: "Estudantes", text: "Protagonistas que transformam desafios em conquistas.", img: "https://images.unsplash.com/photo-1523580494853-5066c0c5e4a7?w=400&h=500&fit=crop" },
-  { title: "Professores", text: "Orientam, inspiram e impulsionam novos talentos.", img: "https://images.unsplash.com/photo-1523050854058-8df90110c9f3?w=400&h=500&fit=crop" },
-  { title: "Servidores", text: "Apoiam, organizam e fortalecem cada etapa do projeto.", img: "https://images.unsplash.com/photo-1517486808906-6ca880c8c6c0?w=400&h=500&fit=crop" },
-  { title: "Colaboradores", text: "Parcerias que multiplicam o conhecimento.", img: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=400&h=500&fit=crop" },
-  { title: "Todos Juntos", text: "Uma comunidade que deixa histórias e constrói legados.", img: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=400&h=500&fit=crop" },
+  { title: "Estudantes", text: "Protagonistas que transformam desafios em conquistas.", img: "/images/estudantes.png" },
+  { title: "Professores", text: "Orientam, inspiram e impulsionam novos talentos.", img: "/images/professores.png" },
+  { title: "Servidores", text: "Apoiam, organizam e fortalecem cada etapa do projeto.", img: "/images/servidores.png" },
+  { title: "Colaboradores", text: "Parcerias que multiplicam o conhecimento.", img: "/images/colaboradores.png" },
+  { title: "Todos Juntos", text: "Uma comunidade que deixa histórias e constrói legados.", img: "/images/todos.png" },
 ];
 
 export default function Projeto() {
@@ -19,7 +19,7 @@ export default function Projeto() {
       {/* Hero */}
       <section className="relative py-20 lg:py-28 bg-[hsl(var(--navy))] overflow-hidden">
         <div className="absolute inset-0 opacity-20">
-          <img src="https://images.unsplash.com/photo-1523580494853-5066c0c5e4a7?w=1600&h=600&fit=crop" alt="" className="w-full h-full object-cover" />
+          <img src="/images/a.png" alt="" className="w-full h-full object-cover" />
         </div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
           <Trophy className="w-12 h-12 mx-auto text-[hsl(var(--gold-light))] mb-4" />
@@ -50,7 +50,7 @@ export default function Projeto() {
               </p>
             </div>
             <div className="relative rounded-3xl overflow-hidden shadow-xl">
-              <img src="https://images.unsplash.com/photo-1562774053-8817958e864b?w=800&h=500&fit=crop" alt="IFPI Campus Pedro II" className="w-full h-[360px] object-cover" />
+              <img src="/images/amoifpi.jpg" alt="IFPI Campus Pedro II" className="w-full h-[360px] object-cover" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="font-heading font-extrabold text-white text-4xl drop-shadow-lg">EU ♥ IFPI</span>
               </div>

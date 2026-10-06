@@ -52,11 +52,15 @@ export default function Noticias() {
     <div className="pt-16 lg:pt-20">
       {/* Hero */}
       <section className="relative py-16 lg:py-20 bg-[hsl(var(--navy))] overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <img src={featured.image} alt="" className="w-full h-full object-cover" />
-        </div>
+        <div className="absolute inset-0 opacity-40">
+  <img
+    src="/images/jornal.png"
+    alt=""
+    className="w-full h-full object-cover"
+  />
+</div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-10 items-center">
+          <div className="max-w-3xl">
             <div className="text-white">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/40 text-blue-200 text-xs font-semibold uppercase tracking-widest mb-4">
                 <Newspaper className="w-4 h-4" /> Notícias atualizadas
@@ -81,20 +85,7 @@ export default function Noticias() {
                 </div>
               </div>
             </div>
-            <Link
-              to={`/noticias/${featured.id}`}
-              className="group relative rounded-3xl overflow-hidden shadow-2xl ring-4 ring-blue-500/30 hover:ring-blue-400/60 transition-all block"
-            >
-              <img src={featured.image} alt={featured.title} className="w-full h-[320px] object-cover" />
-              <div className="absolute inset-0" style={{ backgroundColor: "rgba(0,51,0,0.55)" }} />
-              <div className="absolute bottom-0 inset-x-0 p-6 text-white">
-                <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-2 ${getCategoryStyle(featured.category).bg} ${getCategoryStyle(featured.category).text}`}>
-                  {featured.category}
-                </span>
-                <h3 className="font-heading font-bold text-lg leading-snug group-hover:text-blue-200 transition-colors">{featured.title}</h3>
-                <p className="mt-1 text-sm text-white/70 line-clamp-2">{featured.summary}</p>
-              </div>
-            </Link>
+            
           </div>
         </div>
       </section>
