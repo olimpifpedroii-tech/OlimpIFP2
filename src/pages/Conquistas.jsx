@@ -140,13 +140,18 @@ const [limiteFiltrado, setLimiteFiltrado] = useState(9);
 
 
   const filteredVisiveis = useMemo(() => {
-  if (!temFiltroAtivo) return filtered;
   return filtered.slice(0, limiteFiltrado);
-}, [filtered, temFiltroAtivo, limiteFiltrado]);
-  const limparFiltros = () => {
-    setSearch(""); setMedalType("Todas"); setOlympiad("Todas");
-    setArea("Todas"); setYear("Todos"); setOnlyRecent(false); setOrdenacao("Mais recentes");
-  };
+}, [filtered, limiteFiltrado]);
+ const limparFiltros = () => {
+  setSearch("");
+  setMedalType("Todas");
+  setOlympiad("Todas");
+  setArea("Todas");
+  setYear("Todos");
+  setOnlyRecent(false);
+  setOrdenacao("Mais recentes");
+  setLimiteFiltrado(9);
+};
 
 // Quando houver filtro ativo, carrega todos os medalhistas
 // para que o filtro não considere apenas os 9 já exibidos.
@@ -327,18 +332,24 @@ useEffect(() => {
                 ))}
               </div>
 
-              {/* Botão "Carregar mais" */}
-              {!temFiltroAtivo && (
-                <CarregarMais
-                  onClick={loadMore}
-                  loading={loadingMore}
-                  hasMore={hasMore}
-                  total={total}
-                  shown={medalhistas.length}
-                  label="Carregar mais medalhistas"
-                  corBase="amber"
-                />
-              )}
+              {/* Botão "Carregar mais" sem filtro */}
+{!temFiltroAtivo && (hasMore || filteredVisiveis.length < filtered.length) && (
+  <CarregarMais
+    onClick={() => {
+      setLimiteFiltrado((prev) => prev + 9);
+
+      if (limiteFiltrado >= filtered.length && hasMore) {
+        loadMore();
+      }
+    }}
+    loading={loadingMore}
+    hasMore={true}
+    total={total}
+    shown={filteredVisiveis.length}
+    label="Carregar mais medalhistas"
+    corBase="amber"
+  />
+)}
 
               {/* Carregar mais resultados do filtro */}
 {temFiltroAtivo && !hasMore && filteredVisiveis.length < filtered.length && (
