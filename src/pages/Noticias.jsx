@@ -70,20 +70,7 @@ export default function Noticias() {
               <p className="mt-4 text-white/60 leading-relaxed max-w-lg">
                 Fique por dentro das conquistas, eventos e histórias que movem o projeto OlimpIFP2 do IFPI – Campus Pedro II.
               </p>
-              <div className="mt-6 flex gap-6">
-                <div>
-                  <div className="font-heading font-extrabold text-2xl text-[hsl(var(--gold-light))]">{total}</div>
-                  <div className="text-xs text-white/50">Notícias</div>
-                </div>
-                <div>
-                  <div className="font-heading font-extrabold text-2xl text-[hsl(var(--gold-light))]">+2.800</div>
-                  <div className="text-xs text-white/50">Estudantes</div>
-                </div>
-                <div>
-                  <div className="font-heading font-extrabold text-2xl text-[hsl(var(--gold-light))]">2020</div>
-                  <div className="text-xs text-white/50">Desde</div>
-                </div>
-              </div>
+              
             </div>
             
           </div>
