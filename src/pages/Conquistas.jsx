@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Trophy, Search, ArrowRight, Star, Award, HelpCircle, Megaphone, Crown,
@@ -81,6 +81,8 @@ export default function Conquistas() {
   const [year, setYear] = useState("Todos");
   const [onlyRecent, setOnlyRecent] = useState(false);
   const [ordenacao, setOrdenacao] = useState("Mais recentes");
+  
+const [limiteFiltrado, setLimiteFiltrado] = useState(9);
 
   // Medalhistas com paginação (9 por vez)
   const {
@@ -134,13 +136,28 @@ export default function Conquistas() {
     return lista;
   }, [medalhistas, search, medalType, olympiad, area, year, onlyRecent, ordenacao]);
 
+  const temFiltroAtivo = search || medalType !== "Todas" || olympiad !== "Todas" || area !== "Todas" || year !== "Todos" || onlyRecent;
+
+
+  const filteredVisiveis = useMemo(() => {
+  if (!temFiltroAtivo) return filtered;
+  return filtered.slice(0, limiteFiltrado);
+}, [filtered, temFiltroAtivo, limiteFiltrado]);
   const limparFiltros = () => {
     setSearch(""); setMedalType("Todas"); setOlympiad("Todas");
     setArea("Todas"); setYear("Todos"); setOnlyRecent(false); setOrdenacao("Mais recentes");
   };
 
-  const temFiltroAtivo = search || medalType !== "Todas" || olympiad !== "Todas" || area !== "Todas" || year !== "Todos" || onlyRecent;
-
+// Quando houver filtro ativo, carrega todos os medalhistas
+// para que o filtro não considere apenas os 9 já exibidos.
+useEffect(() => {
+  if (temFiltroAtivo && hasMore && !loading && !loadingMore) {
+    loadMore();
+  }
+}, [temFiltroAtivo, hasMore, loading, loadingMore, loadMore]);
+useEffect(() => {
+  setLimiteFiltrado(9);
+}, [search, medalType, olympiad, area, year, onlyRecent, ordenacao]);
   return (
     <div className="pt-16 lg:pt-20">
       {/* Hero */}
@@ -246,7 +263,17 @@ export default function Conquistas() {
             </div>
 
             <div className="mt-4 flex items-center justify-between text-sm text-slate-500 flex-wrap gap-3">
-              <span>Mostrando <strong className="text-amber-700">{filtered.length}</strong> de <strong className="text-slate-700">{total}</strong> conquistas</span>
+              <span>
+  Mostrando{" "}
+  <strong className="text-amber-700">
+    {temFiltroAtivo ? filteredVisiveis.length : filtered.length}
+  </strong>{" "}
+  de{" "}
+  <strong className="text-slate-700">
+    {temFiltroAtivo ? filtered.length : total}
+  </strong>{" "}
+  conquistas
+</span>
               <select value={ordenacao} onChange={(e) => setOrdenacao(e.target.value)} className="px-3 py-1.5 rounded-lg border-2 border-amber-100 text-sm bg-white focus:outline-none focus:border-amber-400">
                 <option value="Mais recentes">Ordenar por: Mais recentes</option>
                 <option value="Nome">Ordenar por: Nome</option>
@@ -290,7 +317,7 @@ export default function Conquistas() {
               )}
 
               <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {filtered.map((m) => (
+                {filteredVisiveis.map((m) => (
                   <div key={m.id ?? m.name} className="flex flex-col">
                     <MedalistCard medalist={m} />
                     <Link to="/noticias" className="mt-3 mx-auto inline-flex items-center gap-1.5 text-sm font-semibold text-amber-700 hover:text-amber-900 transition-colors">
@@ -313,14 +340,18 @@ export default function Conquistas() {
                 />
               )}
 
-              {/* Aviso quando tem filtro */}
-              {temFiltroAtivo && hasMore && (
-                <div className="text-center py-8">
-                  <p className="text-sm text-slate-400 italic">
-                    Limpe os filtros para carregar mais medalhistas.
-                  </p>
-                </div>
-              )}
+              {/* Carregar mais resultados do filtro */}
+{temFiltroAtivo && !hasMore && filteredVisiveis.length < filtered.length && (
+  <CarregarMais
+    onClick={() => setLimiteFiltrado((prev) => prev + 9)}
+    loading={false}
+    hasMore={true}
+    total={filtered.length}
+    shown={filteredVisiveis.length}
+    label="Carregar mais medalhistas"
+    corBase="amber"
+  />
+)}
             </div>
 
             <aside className="space-y-6">
