@@ -268,10 +268,10 @@ useEffect(() => {
             </div>
 
             <div className="mt-4 flex items-center justify-between text-sm text-slate-500 flex-wrap gap-3">
-              <span>
+             <span>
   Mostrando{" "}
   <strong className="text-amber-700">
-    {temFiltroAtivo ? filteredVisiveis.length : filtered.length}
+    {filteredVisiveis.length}
   </strong>{" "}
   de{" "}
   <strong className="text-slate-700">
@@ -332,32 +332,25 @@ useEffect(() => {
                 ))}
               </div>
 
-              {/* Botão "Carregar mais" sem filtro */}
-{!temFiltroAtivo && (hasMore || filteredVisiveis.length < filtered.length) && (
+              {/* Carregar mais medalhistas */}
+{(filteredVisiveis.length < filtered.length || hasMore) && (
   <CarregarMais
-    onClick={() => {
-      setLimiteFiltrado((prev) => prev + 9);
+    onClick={async () => {
+      // Já existem itens carregados na memória que ainda não estão visíveis
+      if (filteredVisiveis.length < filtered.length) {
+        setLimiteFiltrado((prev) => prev + 9);
+        return;
+      }
 
-      if (limiteFiltrado >= filtered.length && hasMore) {
-        loadMore();
+      // Sem filtro: busca mais 9 no backend
+      if (!temFiltroAtivo && hasMore) {
+        setLimiteFiltrado((prev) => prev + 9);
+        await loadMore();
       }
     }}
     loading={loadingMore}
-    hasMore={true}
-    total={total}
-    shown={filteredVisiveis.length}
-    label="Carregar mais medalhistas"
-    corBase="amber"
-  />
-)}
-
-              {/* Carregar mais resultados do filtro */}
-{temFiltroAtivo && !hasMore && filteredVisiveis.length < filtered.length && (
-  <CarregarMais
-    onClick={() => setLimiteFiltrado((prev) => prev + 9)}
-    loading={false}
-    hasMore={true}
-    total={filtered.length}
+    hasMore={filteredVisiveis.length < filtered.length || (!temFiltroAtivo && hasMore)}
+    total={temFiltroAtivo ? filtered.length : total}
     shown={filteredVisiveis.length}
     label="Carregar mais medalhistas"
     corBase="amber"
