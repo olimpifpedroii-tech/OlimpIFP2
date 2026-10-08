@@ -50,6 +50,7 @@ const MEDALHAS_OLIMPIADA = [
 ];
 
 const ABRANGENCIAS = [
+  "Municipal",
   "Regional",
   "Estadual",
   "Nacional",
