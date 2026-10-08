@@ -45,6 +45,7 @@ class MedalistaUpdate(BaseModel):
     has_trophy: bool | None = None
     trophies: list[str] | None = None
     olympiad: str | None = Field(None, max_length=100)
+    scope: str | None = Field(None, max_length=50)
     course: str | None = Field(None, max_length=150)
     quote: str | None = None
     photo: str | None = None
