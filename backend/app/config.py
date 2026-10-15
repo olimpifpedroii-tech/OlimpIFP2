@@ -15,5 +15,9 @@ class Settings(BaseSettings):
     SUPABASE_URL: str
     SUPABASE_SERVICE_KEY: str
 
+    IMAGEKIT_PUBLIC_KEY: str
+    IMAGEKIT_PRIVATE_KEY: str
+    IMAGEKIT_URL_ENDPOINT: str
+
 
 settings = Settings()

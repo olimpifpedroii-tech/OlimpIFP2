@@ -1,11 +1,11 @@
-"""Endpoints de upload de imagens e vídeos para o Supabase Storage."""
+
+"""Upload de imagens e vídeos para o ImageKit."""
 
 import uuid
-import socket
-from urllib.parse import urlparse
+from pathlib import Path
 
+import requests
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from supabase import create_client, Client
 
 from app.auth.deps import get_current_admin
 from app.config import settings
@@ -14,61 +14,8 @@ from app.models import Admin
 
 router = APIRouter(prefix="/api/upload", tags=["Upload"])
 
-# Cliente Supabase
-supabase: Client = create_client(
-    settings.SUPABASE_URL,
-    settings.SUPABASE_SERVICE_KEY
-)
-
-BUCKET = "olimifp2"
-
-
-# ─────────────────────────────────────────────────────────
-# DEBUG DE CONEXÃO COM O SUPABASE
-# ─────────────────────────────────────────────────────────
-
-def verificar_conexao_supabase():
-    """
-    Mostra nos logs do Render se o domínio do Supabase
-    está sendo encontrado corretamente.
-
-    NÃO exibe a SUPABASE_SERVICE_KEY.
-    """
-
-    try:
-        host = urlparse(settings.SUPABASE_URL).hostname
-
-        print("\n=== DEBUG SUPABASE ===", flush=True)
-        print("URL:", repr(settings.SUPABASE_URL), flush=True)
-        print("HOST:", host, flush=True)
-
-        if not host:
-            print("ERRO: não foi possível extrair o host da SUPABASE_URL", flush=True)
-            print("======================\n", flush=True)
-            return
-
-        try:
-            resultado_dns = socket.getaddrinfo(host, 443)
-
-            # Não precisamos imprimir tudo.
-            # Basta saber que o domínio foi encontrado.
-            print("DNS OK", flush=True)
-
-            if resultado_dns:
-                print("ENDEREÇO ENCONTRADO:", resultado_dns[0][4][0], flush=True)
-
-        except Exception as erro_dns:
-            print("DNS ERRO:", repr(erro_dns), flush=True)
-
-        print("======================\n", flush=True)
-
-    except Exception as erro:
-        print("ERRO NO DEBUG DO SUPABASE:", repr(erro), flush=True)
-
-
-# ─────────────────────────────────────────────────────────
-# IMAGENS
-# ─────────────────────────────────────────────────────────
+IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload"
+IMAGEKIT_FOLDER = "/olimpifp2/medalhistas"
 
 ALLOWED_IMAGE_TYPES = {
     "image/jpeg",
@@ -79,7 +26,62 @@ ALLOWED_IMAGE_TYPES = {
     "image/svg+xml",
 }
 
-MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
+ALLOWED_VIDEO_TYPES = {
+    "video/mp4",
+    "video/webm",
+    "video/quicktime",
+    "video/x-msvideo",
+}
+
+MAX_IMAGE_SIZE = 10 * 1024 * 1024
+MAX_VIDEO_SIZE = 50 * 1024 * 1024
+
+
+def enviar_para_imagekit(content, filename, content_type, folder):
+    """Envia um arquivo ao ImageKit e retorna sua URL pública."""
+
+    try:
+        response = requests.post(
+            IMAGEKIT_UPLOAD_URL,
+            auth=(settings.IMAGEKIT_PRIVATE_KEY, ""),
+            files={
+                "file": (filename, content, content_type),
+            },
+            data={
+                "fileName": filename,
+                "folder": folder,
+                "useUniqueFileName": "false",
+            },
+            timeout=90,
+        )
+
+        response.raise_for_status()
+        result = response.json()
+
+        public_url = result.get("url")
+
+        if not public_url:
+            raise ValueError("O ImageKit não retornou uma URL pública.")
+
+        return public_url
+
+    except requests.RequestException as error:
+        print(
+            "Erro de comunicação com o ImageKit:",
+            type(error).__name__,
+            flush=True,
+        )
+        raise HTTPException(
+            status_code=502,
+            detail="Não foi possível enviar o arquivo ao ImageKit.",
+        ) from error
+
+    except (ValueError, KeyError) as error:
+        print("Resposta inválida do ImageKit:", str(error), flush=True)
+        raise HTTPException(
+            status_code=502,
+            detail="O ImageKit retornou uma resposta inválida.",
+        ) from error
 
 
 @router.post("")
@@ -87,73 +89,38 @@ async def upload_image(
     file: UploadFile = File(...),
     admin: Admin = Depends(get_current_admin),
 ):
-    """
-    Recebe uma imagem e envia para o Supabase Storage.
-    Retorna a URL pública.
-    """
+    """Recebe uma imagem e retorna sua URL pública."""
 
-    # Verifica o tipo do arquivo
     if file.content_type not in ALLOWED_IMAGE_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Tipo não permitido: {file.content_type}. "
-                "Use JPEG, PNG, WebP, GIF ou SVG."
-            ),
+            detail="Tipo não permitido. Use JPEG, PNG, WebP, GIF ou SVG.",
         )
 
-    # Lê o arquivo
-    content = await file.read()
+    content = await file.read(MAX_IMAGE_SIZE + 1)
 
-    # Verifica o tamanho
     if len(content) > MAX_IMAGE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Arquivo muito grande. "
-                f"Máximo: {MAX_IMAGE_SIZE // (1024 * 1024)} MB"
-            ),
+            detail="Imagem muito grande. Máximo: 10 MB.",
         )
 
-    # Cria nome único
-    ext = file.filename.split(".")[-1].lower() if file.filename else "jpg"
-    nome_unico = f"img-{uuid.uuid4().hex}.{ext}"
+    ext = Path(file.filename or "imagem.jpg").suffix.lower()
 
-    # Teste de conexão
-    verificar_conexao_supabase()
-
-    # Envia para o Supabase
-    try:
-        supabase.storage.from_(BUCKET).upload(
-            path=nome_unico,
-            file=content,
-            file_options={
-                "content-type": file.content_type,
-            },
-        )
-
-    except Exception as e:
-        print("\n=== ERRO UPLOAD SUPABASE ===", flush=True)
-        print("TIPO:", type(e).__name__, flush=True)
-        print("ERRO:", repr(e), flush=True)
-        print("============================\n", flush=True)
-
+    if ext not in {".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"}:
         raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao enviar imagem: {str(e)}",
+            status_code=400,
+            detail="Extensão de imagem não permitida.",
         )
 
-    # Pega URL pública
-    try:
-        public_url = supabase.storage.from_(BUCKET).get_public_url(nome_unico)
+    nome_unico = f"img-{uuid.uuid4().hex}{ext}"
 
-    except Exception as e:
-        print("ERRO AO GERAR URL PÚBLICA:", repr(e), flush=True)
-
-        raise HTTPException(
-            status_code=500,
-            detail=f"Imagem enviada, mas houve erro ao gerar URL: {str(e)}",
-        )
+    public_url = enviar_para_imagekit(
+        content,
+        nome_unico,
+        file.content_type,
+        IMAGEKIT_FOLDER,
+    )
 
     return {
         "url": public_url,
@@ -162,87 +129,43 @@ async def upload_image(
     }
 
 
-# ─────────────────────────────────────────────────────────
-# VÍDEOS
-# ─────────────────────────────────────────────────────────
-
-ALLOWED_VIDEO_TYPES = {
-    "video/mp4",
-    "video/webm",
-    "video/quicktime",
-    "video/x-msvideo",
-}
-
-MAX_VIDEO_SIZE = 50 * 1024 * 1024  # 50 MB
-
-
 @router.post("/video")
 async def upload_video(
     file: UploadFile = File(...),
     admin: Admin = Depends(get_current_admin),
 ):
-    """
-    Recebe um vídeo e envia para o Supabase Storage.
-    Retorna a URL pública.
-    """
+    """Recebe um vídeo e retorna sua URL pública."""
 
     if file.content_type not in ALLOWED_VIDEO_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Tipo não permitido: {file.content_type}. "
-                "Use MP4, WebM, MOV ou AVI."
-            ),
+            detail="Tipo não permitido. Use MP4, WebM, MOV ou AVI.",
         )
 
-    content = await file.read()
+    content = await file.read(MAX_VIDEO_SIZE + 1)
 
     if len(content) > MAX_VIDEO_SIZE:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                f"Vídeo muito grande. "
-                f"Máximo: {MAX_VIDEO_SIZE // (1024 * 1024)} MB. "
-                "Para vídeos maiores, use YouTube."
-            ),
+            detail="Vídeo muito grande. Máximo: 50 MB.",
         )
 
-    ext = file.filename.split(".")[-1].lower() if file.filename else "mp4"
-    nome_unico = f"vid-{uuid.uuid4().hex}.{ext}"
+    ext = Path(file.filename or "video.mp4").suffix.lower()
 
-    # Teste de conexão
-    verificar_conexao_supabase()
-
-    try:
-        supabase.storage.from_(BUCKET).upload(
-            path=nome_unico,
-            file=content,
-            file_options={
-                "content-type": file.content_type,
-            },
-        )
-
-    except Exception as e:
-        print("\n=== ERRO UPLOAD SUPABASE ===", flush=True)
-        print("TIPO:", type(e).__name__, flush=True)
-        print("ERRO:", repr(e), flush=True)
-        print("============================\n", flush=True)
-
+    if ext not in {".mp4", ".webm", ".mov", ".avi"}:
         raise HTTPException(
-            status_code=500,
-            detail=f"Erro ao enviar vídeo: {str(e)}",
+            status_code=400,
+            detail="Extensão de vídeo não permitida.",
         )
 
-    try:
-        public_url = supabase.storage.from_(BUCKET).get_public_url(nome_unico)
+    nome_unico = f"vid-{uuid.uuid4().hex}{ext}"
 
-    except Exception as e:
-        print("ERRO AO GERAR URL PÚBLICA:", repr(e), flush=True)
-
-        raise HTTPException(
-            status_code=500,
-            detail=f"Vídeo enviado, mas houve erro ao gerar URL: {str(e)}",
-        )
+    public_url = enviar_para_imagekit(
+        content,
+        nome_unico,
+        file.content_type,
+        "/olimpifp2/videos",
+    )
 
     return {
         "url": public_url,
